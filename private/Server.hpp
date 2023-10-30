@@ -37,6 +37,7 @@ class Server
 
 	public:
 		Server();
+		Server(int port, std::string password);
 		Server(Server const & src);
 		~Server();
 
@@ -46,6 +47,7 @@ class Server
 		int const 			&getIP(void) const;
 		int const 			&getPort(void) const;
 
+		void				init_server(void);
 		void				loop(void);
 
 };

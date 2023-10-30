@@ -1,0 +1,5 @@
+IRC : chat system.
+- communication through channel and private messages
+- pas de compte necessaire, juste un nickname
+
+using TCP connection

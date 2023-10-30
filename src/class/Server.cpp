@@ -11,6 +11,14 @@ Server::Server() :
 		std::cout << "Default constructor called.\n";
 }
 
+Server::Server(int port, std::string password) :
+	_IP(0), _password(password),
+	_port(port), _socket(0)
+{
+	if (DEBUG)
+		std::cout << "Param port and password constructor called.\n";
+}
+
 Server::Server(Server const & src) : 
 	_IP(src._IP), _password(src._password),
 	_port(src._port), _socket(src._socket)
@@ -66,6 +74,11 @@ std::ostream & operator<<(std::ostream & lhs, Server const & rhs)
 }
 
 // Functions -------------------------------------------------------------------
+
+// void	Server::init_server(void)
+// {
+
+// }
 
 // void	Server::loop(void)
 // {
