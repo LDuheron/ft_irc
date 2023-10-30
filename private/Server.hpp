@@ -46,6 +46,8 @@ class Server
 		int const 			&getIP(void) const;
 		int const 			&getPort(void) const;
 
+		void				loop(void);
+
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const & rhs);

@@ -66,3 +66,10 @@ std::ostream & operator<<(std::ostream & lhs, Server const & rhs)
 }
 
 // Functions -------------------------------------------------------------------
+
+// void	Server::loop(void)
+// {
+	// check inactivity : envoyer un ping ?
+	// handle new client
+	// handle new request
+// }
