@@ -86,3 +86,22 @@ std::ostream & operator<<(std::ostream & lhs, Server const & rhs)
 	// handle new client
 	// handle new request
 // }
+
+// void	Server::check_inactivity()
+// {
+// 	send() ?????????????
+// }
+
+
+// void	Server::handleNewClient()
+// {
+// 	accept()
+// }
+
+// void	Server::handleNewRequest()
+// {
+	// recv ???????????????
+	// bind ???(listen() "completes" bind)
+// 	listen()
+// accept()
+// }

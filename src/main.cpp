@@ -12,6 +12,6 @@ int main(int argc, char **argv)
 	Server	server(atoi(argv[1]), argv[2]);
 
 	// server.init_server();
-	// server.loop
+	// server.loop();
 	return (SUCCESS);
 }
