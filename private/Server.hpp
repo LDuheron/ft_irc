@@ -15,8 +15,11 @@
 
 # include <iostream>
 # include <limits.h>
+# include <netinet/in.h>
 # include <stdlib.h>
 # include <string>
+# include <sys/socket.h>
+// # include <sys/types.h>
 # include <vector>
 
 # define DEBUG 0
@@ -30,9 +33,12 @@ class Server
 {
 	private:
 		int					_IP;
+		std::string			_nickname; // length max 9
 		std::string			_password;
 		int					_port;
-		std::vector<int>	_socket; // [0] = fd du server, else fd clients
+		struct	sockaddr_in _serverAddr;
+		int					_socket;
+		///// // [0] = fd du server, else fd clients
 		// structure avec les fds de select / pol / epoll ?
 
 	public:
@@ -42,11 +48,16 @@ class Server
 		~Server();
 
 		Server &	operator=(Server const & rhs);
-	
-		std::string const 	&getPassword(void) const;
-		int const 			&getIP(void) const;
-		int const 			&getPort(void) const;
 
+		int const 			&getIP(void) const;
+		std::string const 	&getNickname(void) const;
+		std::string const 	&getPassword(void) const;
+		int const 			&getPort(void) const;
+		int const 			&getSocket(void) const;
+
+		void				setSocket(int newSocket);
+
+		void				init_serverAddr(void);
 		void				init_server(void);
 		void				loop(void);
 
