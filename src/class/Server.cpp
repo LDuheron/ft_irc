@@ -104,65 +104,85 @@ void	Server::init_serverAddr(void)
 	// this->_serverAddr.sin_zero =
 }
 
-// socket = file descritpor used for communication.
+void	Server::init_server(void)
+{
+	init_serverAddr();
+
+	setSocket(socket(AF_INET, SOCK_STREAM, 0));
+	if (this->_socket == FAIL)
+		std::cerr << "Error : Failed to create socket.\n";
+// SOCKET = file descriptor used for communication.
 // AF_INET = IPV4
 // SOCK_STREAM : Provides sequenced, reliable, bidirectional, connection-mode byte 
 // streams, and may provide a transmission mechanism for out-of-band data.
 // speifies that the commuinication is a two way reliale communicaction (TCP)
 // only one protocol alvailable for each type so 0.
 
-// BIND : used to assing an IP adress and port to the socket.
+	// setsocktopt() ???
 
-/// LISTEN : marks the socket as passive: the socket will be used to accept cnnections. Create a queue ofconnections
-/// Accept : accept the queue created by listen().
-
-void	Server::init_server(void)
-{
-	// Init server addr structure
-	init_serverAddr();
-
-	setSocket(socket(AF_INET, SOCK_STREAM, 0));
-	if (this->_socket == FAIL)
-		std::cerr << "Error : Failed to create socket.\n";
+	if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
+		std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
+// Fcntl : file control, par defaut lecture et ecriture sur socket sont bloauqntes = le programme reste en attante jusqu'a ce que 
+// les donnees arrivent = freeze/ ralentissement de la communication. Fcntl permet de passer en mode non bloquant meme s'il n'y a 
+// pas de donnees disponibles.
+// F_SETFL = set file status command with O_NONBLOCK arg.
 
 	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 		std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
+// BIND : used to assing an IP adress and port to the socket.
 
 	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
 		std::cerr << "Error : Failed to listen.\n";
+// LISTEN : marks the socket as passive: the socket will be used to accept cnnections. Create a queue ofconnections
 
 	if (DEBUG)
-		std::cout << "Server_init successful";
-	// close(this->_socket);
-	// RPL_WELCOME
+		std::cout << "Server initialisation successful.\n";
+
+// RPL_WELCOME message
+
 }
 
 // Functions - launch server -------------------------------------------------------------------
 
-// void	Server::check_inactivity()
-// {
-// 	send() ?????????????
-// }
+void	Server::check_inactivity(void)
+{
+// 	send() send ping wait for pong?????????????
+}
 
-// void	Server::handleNewClient()
-// {
-// 	accept()
-// }
+void	Server::handleNewClient(void)
+{
+	// if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
+	// 	std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
 
-// void	Server::handleNewRequest()
-// {
+	// if (listen(this->_socket, MAX_CLIENTS) == FAIL)
+	// 	std::cerr << "Error : Failed to listen.\n";
+
+	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
+	// 	std::cerr << "Error : Failed to accept.\n";
+// Accept : accept the queue created by listen().
+
+}
+
+void	Server::handleNewRequest(void)
+{
 	// recv ???????????????
-	// bind ???(listen() "completes" bind)
-// 	listen()
-// accept()
-// }
+
+	// if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
+	// 	std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
+
+	// if (listen(this->_socket, MAX_CLIENTS) == FAIL)
+	// 	std::cerr << "Error : Failed to listen.\n";
+
+	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
+	// 	std::cerr << "Error : Failed to accept.\n";
+}
 
 void	Server::loop(void)
 {
-	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to accept.\n";
+	// if (connect(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
+	// 	std::cerr << "Error : Failed to connect.\n";
 
-	// check inactivity : envoyer un ping ?
-	// handle new client
-	// handle new request
+	check_inactivity();
+	handleNewClient();
+	handleNewRequest();
 }

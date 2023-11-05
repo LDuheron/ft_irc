@@ -18,6 +18,8 @@ int main(int argc, char **argv)
 		server.init_server();
 		server.loop();
 	// }
-	// catch {}
+	// catch () {
+	// close(this->_socket);
+	// }
 	return (SUCCESS);
 }

@@ -13,6 +13,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include <fcntl.h>
 # include <fstream>
 # include <iostream>
 # include <limits.h>
@@ -61,6 +62,11 @@ class Server
 		void				init_serverAddr(void);
 		void				init_server(void);
 		void				loop(void);
+
+		void				check_inactivity(void);
+		void				handleNewClient(void);
+		void				handleNewRequest(void);
+
 
 };
 

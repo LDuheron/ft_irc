@@ -1,1 +1,0 @@
-// https://www.alien.net.au/irc/irc2numerics.html
