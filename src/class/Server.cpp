@@ -9,7 +9,7 @@ Server::Server() :
 	_nickname("DEFAULT")
 {
 	if (DEBUG)
-		std::cout << "Default constructor called.\n";
+		std::cout << "Server : default constructor called.\n";
 }
 
 Server::Server(int port, std::string password) :
@@ -18,7 +18,7 @@ Server::Server(int port, std::string password) :
 	_nickname("DEFAULT")
 {
 	if (DEBUG)
-		std::cout << "Param port and password constructor called.\n";
+		std::cout << "Server : Param port and password constructor called.\n";
 }
 
 Server::Server(Server const & src) : 
@@ -27,7 +27,7 @@ Server::Server(Server const & src) :
 	_nickname(src._nickname)
 {
 	if (DEBUG)
-		std::cout << "Copy constructor called.\n";
+		std::cout << "Server : copy constructor called.\n";
 }
 
 // Destructor ------------------------------------------------------------------
@@ -35,7 +35,7 @@ Server::Server(Server const & src) :
 Server::~Server()
 {
 	if (DEBUG)
-		std::cout << "Destructor called.\n";
+		std::cout << "Server : destructor called.\n";
 }
 
 // Accessors -------------------------------------------------------------------
@@ -91,29 +91,40 @@ std::ostream & operator<<(std::ostream & lhs, Server const & rhs)
 
 // Functions -------------------------------------------------------------------
 
+// https://ncona.com/2019/04/building-a-simple-server-with-cpp/
+
 // INIT_SERVERADDR : This function initializes the structure of data sockaddr_in.
 // sin_family is AF_INET = gives to socket an IPv4 socket address to allow it to
 // communicate with other hosts over a TCP/IP network.
 // sin_port member defines the TCP/IP port number for the socket address.
 void	Server::init_serverAddr(void)
 {
+	// htonl
 	// this->_serverAddr.sin_addr = inet_addr("0.0.0.0"); // replace with actual server IP
 	this->_serverAddr.sin_family = AF_INET;
 	this->_serverAddr.sin_port = htons(this->_port);
 	// this->_serverAddr.sin_zero =
 }
 
+// socket = file descritpor used for communication.
+// AF_INET = IPV4
+// SOCK_STREAM : Provides sequenced, reliable, bidirectional, connection-mode byte 
+// streams, and may provide a transmission mechanism for out-of-band data.
+// speifies that the commuinication is a two way reliale communicaction (TCP)
+// only one protocol alvailable for each type so 0.
+
+// BIND : used to assing an IP adress and port to the socket.
+
 void	Server::init_server(void)
 {
 	// Init server addr structure
 	init_serverAddr();
-	// get
-	// set
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
 	if (this->_socket == -1)
-		std::cerr << "ERROR\n";
+		std::cerr << "Error : Failed to create socket.\n";
 
-	// bind(_socket)
+	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == - 1)
+		std::cerr << "Error : Failed to bind\n";
 
 	// listen
 	// RPL_WELCOME

@@ -38,7 +38,7 @@ class Server
 		int					_port;
 		struct	sockaddr_in _serverAddr;
 		int					_socket;
-		///// // [0] = fd du server, else fd clients
+		/////// [0] = fd du server, else fd clients
 		// structure avec les fds de select / pol / epoll ?
 
 	public:
