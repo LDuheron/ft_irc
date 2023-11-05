@@ -4,7 +4,6 @@
 // commande pour se connecter a irssi
 // /connect localhost <port> <password> <nickname optionnel>
 
-
 int main(int argc, char **argv)
 {
 	if (argc != 3)
@@ -14,9 +13,11 @@ int main(int argc, char **argv)
 	}
 	Server	server(atoi(argv[1]), argv[2]);
 
-	server.init_server();
-	// server.loop();
+	// try 
+	// {
+		server.init_server();
+		server.loop();
+	// }
+	// catch {}
 	return (SUCCESS);
 }
-
-// bind = connecter serveur a un port

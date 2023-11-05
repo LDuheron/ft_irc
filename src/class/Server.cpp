@@ -4,27 +4,25 @@
 // Constructor -----------------------------------------------------------------
 
 Server::Server() :
-	_IP(0), _password("NULL"),
-	_port(0), _socket(0),
-	_nickname("DEFAULT")
+	_IP(0), _nickname("DEFAULT"), _password("NULL"),
+	_port(0), _serverAddr(), _socket(0)
 {
 	if (DEBUG)
 		std::cout << "Server : default constructor called.\n";
 }
 
 Server::Server(int port, std::string password) :
-	_IP(0), _password(password),
-	_port(port), _socket(0),
-	_nickname("DEFAULT")
+	_IP(0),_nickname("DEFAULT"), _password(password),
+	_port(port), _serverAddr(), _socket(0)
 {
 	if (DEBUG)
 		std::cout << "Server : Param port and password constructor called.\n";
 }
 
 Server::Server(Server const & src) : 
-	_IP(src._IP), _password(src._password),
-	_port(src._port), _socket(src._socket),
-	_nickname(src._nickname)
+	_IP(src._IP),_nickname(src._nickname), _password(src._password),
+	_port(src._port), _serverAddr(), _socket(src._socket)
+	
 {
 	if (DEBUG)
 		std::cout << "Server : copy constructor called.\n";
@@ -89,7 +87,7 @@ std::ostream & operator<<(std::ostream & lhs, Server const & rhs)
 	return lhs;
 }
 
-// Functions -------------------------------------------------------------------
+// Functions - init data -------------------------------------------------------------------
 
 // https://ncona.com/2019/04/building-a-simple-server-with-cpp/
 
@@ -133,23 +131,18 @@ void	Server::init_server(void)
 	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
 		std::cerr << "Error : Failed to listen.\n";
 
+	if (DEBUG)
+		std::cout << "Server_init successful";
 	// close(this->_socket);
-
 	// RPL_WELCOME
 }
 
-// void	Server::loop(void)
-// {
-	// check inactivity : envoyer un ping ?
-	// handle new client
-	// handle new request
-// }
+// Functions - launch server -------------------------------------------------------------------
 
 // void	Server::check_inactivity()
 // {
 // 	send() ?????????????
 // }
-
 
 // void	Server::handleNewClient()
 // {
@@ -163,3 +156,13 @@ void	Server::init_server(void)
 // 	listen()
 // accept()
 // }
+
+void	Server::loop(void)
+{
+	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
+	// 	std::cerr << "Error : Failed to accept.\n";
+
+	// check inactivity : envoyer un ping ?
+	// handle new client
+	// handle new request
+}
