@@ -13,6 +13,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include <fstream>
 # include <iostream>
 # include <limits.h>
 # include <netinet/in.h>
@@ -24,6 +25,7 @@
 
 # define DEBUG 0
 
+# define FAIL -1
 # define SUCCESS 0
 # define ERROR 1
 

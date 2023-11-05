@@ -115,18 +115,26 @@ void	Server::init_serverAddr(void)
 
 // BIND : used to assing an IP adress and port to the socket.
 
+/// LISTEN : marks the socket as passive: the socket will be used to accept cnnections. Create a queue ofconnections
+/// Accept : accept the queue created by listen().
+
 void	Server::init_server(void)
 {
 	// Init server addr structure
 	init_serverAddr();
+
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
-	if (this->_socket == -1)
+	if (this->_socket == FAIL)
 		std::cerr << "Error : Failed to create socket.\n";
 
-	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == - 1)
-		std::cerr << "Error : Failed to bind\n";
+	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
+		std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
 
-	// listen
+	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
+		std::cerr << "Error : Failed to listen.\n";
+
+	// close(this->_socket);
+
 	// RPL_WELCOME
 }
 
