@@ -135,6 +135,7 @@ void	Server::init_server(void)
 		std::cerr << "Error : Failed to listen.\n";
 // LISTEN : marks the socket as passive: the socket will be used to accept cnnections. Create a queue ofconnections
 
+	this->_allSocket.pushback(this->_socket);
 	if (DEBUG)
 		std::cout << "Server initialisation successful.\n";
 
@@ -151,6 +152,10 @@ void	Server::check_inactivity(void)
 
 void	Server::handleNewClient(void)
 {
+	// create a new socket ;
+	// this->_allSocket.pushback();
+
+
 	// if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
 
