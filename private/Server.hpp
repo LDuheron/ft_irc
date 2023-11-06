@@ -13,14 +13,19 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include <arpa/inet.h>
+# include <sys/epoll.h>
 # include <fcntl.h>
 # include <fstream>
 # include <iostream>
 # include <limits.h>
 # include <netinet/in.h>
 # include <stdlib.h>
+# include <stdio.h>
 # include <string>
+# include <string.h>
 # include <sys/socket.h>
+# include <unistd.h> 
 # include <vector>
 
 # define DEBUG 0
@@ -34,13 +39,17 @@
 class Server
 {
 	private:
+		// std::vector<int>	_allSockets;
+		int					_epoll_fd;
+		struct	epoll_event	_epoll_event;
 		int					_IP;
 		std::string			_nickname; // length max 9
 		std::string			_password;
 		int					_port;
 		struct	sockaddr_in _serverAddr;
 		int					_socket;
-		std::vector<int*>	_allSockets;
+	
+
 		/////// [0] = fd du server, else fd clients
 		// structure avec les fds de select / pol / epoll ?
 

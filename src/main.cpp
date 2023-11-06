@@ -3,6 +3,8 @@
 ///// generer client via Irssi.org
 // commande pour se connecter a irssi
 // /connect localhost <port> <password> <nickname optionnel>
+// RAWLOG OPEN debug.log -> voir messages envoyes
+// 6667 : standard ports for client-server connections.as port
 
 int main(int argc, char **argv)
 {

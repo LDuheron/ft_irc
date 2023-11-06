@@ -4,6 +4,7 @@
 // Constructor -----------------------------------------------------------------
 
 Server::Server() :
+	_epoll_fd(0), _epoll_event(),
 	_IP(0), _nickname("DEFAULT"), _password("NULL"),
 	_port(0), _serverAddr(), _socket(0)
 {
@@ -12,6 +13,7 @@ Server::Server() :
 }
 
 Server::Server(int port, std::string password) :
+	_epoll_fd(0), _epoll_event(),
 	_IP(0),_nickname("DEFAULT"), _password(password),
 	_port(port), _serverAddr(), _socket(0)
 {
@@ -19,7 +21,8 @@ Server::Server(int port, std::string password) :
 		std::cout << "Server : Param port and password constructor called.\n";
 }
 
-Server::Server(Server const & src) : 
+Server::Server(Server const & src) :
+	_epoll_fd(0), _epoll_event(),
 	_IP(src._IP),_nickname(src._nickname), _password(src._password),
 	_port(src._port), _serverAddr(), _socket(src._socket)
 	
@@ -97,16 +100,22 @@ std::ostream & operator<<(std::ostream & lhs, Server const & rhs)
 // sin_port member defines the TCP/IP port number for the socket address.
 void	Server::init_serverAddr(void)
 {
-	// htonl
-	// this->_serverAddr.sin_addr = inet_addr("0.0.0.0"); // replace with actual server IP
 	this->_serverAddr.sin_family = AF_INET;
 	this->_serverAddr.sin_port = htons(this->_port);
-	// this->_serverAddr.sin_zero =
+
+	// htonl(localhost);
+	// inet_addr("0.0.0.0"); // replace with actual server IP
+	this->_serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+
 }
 
 void	Server::init_server(void)
 {
 	init_serverAddr();
+	this->_epoll_fd = epoll_create1(0);
+	if (this->_epoll_fd == FAIL)
+		std::cerr << "Error: Failed to epoll.\n";
 
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
 	if (this->_socket == FAIL)
@@ -115,7 +124,7 @@ void	Server::init_server(void)
 // AF_INET = IPV4
 // SOCK_STREAM : Provides sequenced, reliable, bidirectional, connection-mode byte 
 // streams, and may provide a transmission mechanism for out-of-band data.
-// speifies that the commuinication is a two way reliale communicaction (TCP)
+// specifies that the commuinication is a two way reliable communicaction (TCP)
 // only one protocol alvailable for each type so 0.
 
 	// setsocktopt() ???
@@ -134,12 +143,24 @@ void	Server::init_server(void)
 	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
 		std::cerr << "Error : Failed to listen.\n";
 // LISTEN : marks the socket as passive: the socket will be used to accept cnnections. Create a queue ofconnections
+	
+	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), (socklen_t*)sizeof(&this->_serverAddr)) == FAIL)
+	// 	std::cerr << "Error : Failed to accept.\n";
 
-	this->_allSocket.pushback(this->_socket);
+// Epoll : used to manage events on file descriptors. It can efficiently handle a large number of file descriptors with a single 
+// system call and provides better performance as the number of file descriptors grows. 
+
+	if (epoll_wait(this->_epoll_fd, &this->_epoll_event, MAX_CLIENTS, -1) == FAIL)
+		std::cerr << "Error : Epoll_wait() failed.\n";
+
+	// this->_allSockets.push_back(this->_socket);
+
 	if (DEBUG)
 		std::cout << "Server initialisation successful.\n";
 
+	std::cout << ":Welcome to the <networkname> Network, " << this->_nickname << "[!<user>@<host>]";
 // RPL_WELCOME message
+	close(this->_epoll_fd);
 
 }
 
