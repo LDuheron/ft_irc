@@ -1,8 +1,12 @@
 #include "Server.hpp"
 
 ///// generer client via Irssi.org
-// commande pour se connecter a irssi
+// commande pour se connecter a irssi :
 // /connect localhost <port> <password> <nickname optionnel>
+// RAWLOG OPEN debug.log -> voir messages envoyes
+// 6667 : standard ports for client-server connections.as port
+
+// CAP LS
 
 int main(int argc, char **argv)
 {
@@ -20,6 +24,8 @@ int main(int argc, char **argv)
 	// }
 	// catch () {
 	// close(this->_socket);
+
 	// }
+	// close(server._epollFd);
 	return (SUCCESS);
 }

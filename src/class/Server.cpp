@@ -4,7 +4,8 @@
 // Constructor -----------------------------------------------------------------
 
 Server::Server() :
-	_IP(0), _nickname("DEFAULT"), _password("NULL"),
+	_epollFd(0), _epollEvent(), _IP(0),
+	_nickname("DEFAULT"), _nbClients(0), _password("NULL"),
 	_port(0), _serverAddr(), _socket(0)
 {
 	if (DEBUG)
@@ -12,15 +13,17 @@ Server::Server() :
 }
 
 Server::Server(int port, std::string password) :
-	_IP(0),_nickname("DEFAULT"), _password(password),
+	_epollFd(0), _epollEvent(), _IP(0),
+	_nickname("DEFAULT"), _nbClients(0), _password(password),
 	_port(port), _serverAddr(), _socket(0)
 {
 	if (DEBUG)
 		std::cout << "Server : Param port and password constructor called.\n";
 }
 
-Server::Server(Server const & src) : 
-	_IP(src._IP),_nickname(src._nickname), _password(src._password),
+Server::Server(Server const & src) :
+	_epollFd(0), _epollEvent(), _IP(src._IP),
+	_nickname(src._nickname), _nbClients(src._nbClients), _password(src._password),
 	_port(src._port), _serverAddr(), _socket(src._socket)
 	
 {
@@ -97,16 +100,22 @@ std::ostream & operator<<(std::ostream & lhs, Server const & rhs)
 // sin_port member defines the TCP/IP port number for the socket address.
 void	Server::init_serverAddr(void)
 {
-	// htonl
-	// this->_serverAddr.sin_addr = inet_addr("0.0.0.0"); // replace with actual server IP
 	this->_serverAddr.sin_family = AF_INET;
 	this->_serverAddr.sin_port = htons(this->_port);
-	// this->_serverAddr.sin_zero =
+
+	// htonl(localhost);
+	// inet_addr("0.0.0.0"); // replace with actual server IP
+	this->_serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+
 }
 
 void	Server::init_server(void)
 {
 	init_serverAddr();
+	this->_epollFd = epoll_create1(0);
+	if (this->_epollFd == FAIL)
+		std::cerr << "Error: Failed to epoll.\n";
 
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
 	if (this->_socket == FAIL)
@@ -115,7 +124,7 @@ void	Server::init_server(void)
 // AF_INET = IPV4
 // SOCK_STREAM : Provides sequenced, reliable, bidirectional, connection-mode byte 
 // streams, and may provide a transmission mechanism for out-of-band data.
-// speifies that the commuinication is a two way reliale communicaction (TCP)
+// specifies that the commuinication is a two way reliable communicaction (TCP)
 // only one protocol alvailable for each type so 0.
 
 	// setsocktopt() ???
@@ -134,12 +143,23 @@ void	Server::init_server(void)
 	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
 		std::cerr << "Error : Failed to listen.\n";
 // LISTEN : marks the socket as passive: the socket will be used to accept cnnections. Create a queue ofconnections
+	
+	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), (socklen_t*)sizeof(&this->_serverAddr)) == FAIL)
+	// 	std::cerr << "Error : Failed to accept.\n";
 
+// Epoll : used to manage events on file descriptors. It can efficiently handle a large number of file descriptors with a single 
+// system call and provides better performance as the number of file descriptors grows. 
 	if (DEBUG)
 		std::cout << "Server initialisation successful.\n";
 
+	if (epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, -1) == FAIL)
+		std::cerr << "Error : Epoll_wait() failed.\n";
+
+	// this->_allSockets.push_back(this->_socket);
+
 // RPL_WELCOME message
 
+	// close(this->_epollFd);
 }
 
 // Functions - launch server -------------------------------------------------------------------
@@ -151,16 +171,35 @@ void	Server::check_inactivity(void)
 
 void	Server::handleNewClient(void)
 {
-	// if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
-
-	// if (listen(this->_socket, MAX_CLIENTS) == FAIL)
-	// 	std::cerr << "Error : Failed to listen.\n";
-
+	Client *newClient;
+	// // memset newClient?;
 	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to accept.\n";
-// Accept : accept the queue created by listen().
 
+// in error 
+ 
+	// check if too much client
+	// if (this->_nbClients + 1 > MAX_CLIENTS)
+	// {
+	// send message too much clients
+	// 
+	// close fd
+	// quit
+	// }
+
+
+
+// in success
+	
+	// send(":IRC 001 ", this->_nickname, ":Welcome to the IRC Network, ", this->_nickname, "\n");
+	newClient = new Client;
+	(*newClient).setFd(socket(AF_INET, SOCK_STREAM, 0));
+	if ((*newClient).getFd() == FAIL)
+		std::cerr << "Error : Failed to create socket.\n";
+	if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
+		std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
+	this->_allClients.push_back(newClient);
+	this->_nbClients += 1;
 }
 
 void	Server::handleNewRequest(void)
@@ -181,7 +220,8 @@ void	Server::loop(void)
 {
 	// if (connect(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to connect.\n";
-
+	if (DEBUG)
+		std::cout << "Enter in server loop.\n"; 
 	check_inactivity();
 	handleNewClient();
 	handleNewRequest();
