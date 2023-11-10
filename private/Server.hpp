@@ -19,7 +19,7 @@
 
 # include "Client.hpp"
 
-# define DEBUG 0
+# define DEBUG 1
 
 # define FAIL -1
 # define SUCCESS 0
@@ -33,15 +33,15 @@ class Server
 {
 	private:
 		// std::vector<int>	_allSockets;
-		int					_epoll_fd;
-		struct	epoll_event	_epoll_event;
-		int					_IP; //???
-		std::string			_nickname; // length max 9
-		int					_nbClients;
-		std::string			_password;
-		int					_port;
-		struct	sockaddr_in _serverAddr;
-		int					_socket;
+		int						_epollFd;
+		struct	epoll_event		_epollEvent;
+		int						_IP; //???
+		std::string				_nickname; // length max 9
+		int						_nbClients;
+		std::string				_password;
+		int						_port;
+		struct	sockaddr_in 	_serverAddr;
+		int						_socket;
 		std::vector<Client*>	_allClients;
 
 		/////// [0] = fd du server, else fd clients

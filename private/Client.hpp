@@ -8,12 +8,16 @@ class Client
 	private:
 		int			_fd;
 		std::string	_nickname;
+		std::string	_username;
 		// epollfd
 
 	public:
 		Client();
 		~Client();
+
+		int			getFd(void) const;
 		void		setFd(int fd);
+
 		Client &	operator=(Client const & rhs);
 };
 

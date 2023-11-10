@@ -23,6 +23,7 @@ PRV_DIR		= 	private
 #            SOURCE FILES            #
 ######################################
 SRC			=						\
+				class/Client.cpp	\
 				class/Server.cpp	\
 				main.cpp
 
