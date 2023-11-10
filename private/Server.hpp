@@ -32,7 +32,7 @@ class Client;
 class Server
 {
 	private:
-		// std::vector<int>	_allSockets;
+		// std::vector<int>		_allSockets;
 		int						_epollFd;
 		struct	epoll_event		_epollEvent;
 		int						_IP; //???
@@ -70,7 +70,6 @@ class Server
 		void				check_inactivity(void);
 		void				handleNewClient(void);
 		void				handleNewRequest(void);
-
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const & rhs);
