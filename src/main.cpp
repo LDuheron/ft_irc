@@ -8,6 +8,16 @@
 
 // CAP LS
 
+void	signalHandler(int signum)
+{
+	(void) signum;
+	std::cout << "Exiting server.\n";
+	exit(SIGINT);
+	// close fd ?
+}
+
+// CLIENT OPERATOR ????????????????
+
 int main(int argc, char **argv)
 {
 	if (argc != 3)
@@ -16,16 +26,13 @@ int main(int argc, char **argv)
 		return (ERROR);
 	}
 	Server	server(atoi(argv[1]), argv[2]);
+	signal(SIGINT, signalHandler);
 
-	// try 
-	// {
-		server.init_server();
+	// try catch  ?
+	server.init_server();
+	while (1)
 		server.loop();
-	// }
-	// catch () {
-	// close(this->_socket);
 
-	// }
 	// close(server._epollFd);
 	return (SUCCESS);
 }

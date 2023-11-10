@@ -4,6 +4,7 @@
 // Constructor -----------------------------------------------------------------
 
 Server::Server() :
+	_allClients(), _allFd(),
 	_epollFd(0), _epollEvent(), _IP(0),
 	_nickname("DEFAULT"), _nbClients(0), _password("NULL"),
 	_port(0), _serverAddr(), _socket(0)
@@ -13,6 +14,7 @@ Server::Server() :
 }
 
 Server::Server(int port, std::string password) :
+	_allClients(), _allFd(),
 	_epollFd(0), _epollEvent(), _IP(0),
 	_nickname("DEFAULT"), _nbClients(0), _password(password),
 	_port(port), _serverAddr(), _socket(0)
@@ -21,12 +23,9 @@ Server::Server(int port, std::string password) :
 		std::cout << "Server : Param port and password constructor called.\n";
 }
 
-Server::Server(Server const & src) :
-	_epollFd(0), _epollEvent(), _IP(src._IP),
-	_nickname(src._nickname), _nbClients(src._nbClients), _password(src._password),
-	_port(src._port), _serverAddr(), _socket(src._socket)
-	
+Server::Server(Server const & src)
 {
+	*this = src;
 	if (DEBUG)
 		std::cout << "Server : copy constructor called.\n";
 }
@@ -70,12 +69,19 @@ void	Server::setSocket(int newSocket)
 
 Server &	Server::operator=(Server const & rhs)
 {
+	for (int i = 0; i < (int)rhs._allClients.size(); i++)
+		this->_allClients.push_back(rhs._allClients[i]);
+	for (int i = 0; i < (int)rhs._allFd.size(); i++)
+		this->_allFd.push_back(rhs._allFd[i]);
+	this->_epollFd = rhs._epollFd;
+	this->_epollEvent = rhs._epollEvent;
 	this->_IP = rhs._IP;
 	this->_nickname = rhs._nickname;
+	this->_nbClients = rhs._nbClients;
 	this->_password = rhs._password;
 	this->_port = rhs._port;
-	this->_socket = rhs._socket;
 	this->_serverAddr = rhs._serverAddr;
+	this->_socket = rhs._socket;
 	return *this;
 }
 
@@ -130,10 +136,7 @@ void	Server::init_server(void)
 	if (DEBUG)
 		std::cout << "Server initialisation successful.\n";
 
-	if (epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, -1) == FAIL)
-		std::cerr << "Error : Epoll_wait() failed.\n";
-
-	// this->_allSockets.push_back(this->_socket);
+	this->_allFd.push_back(this->_socket);
 
 	// RPL_WELCOME message
 
@@ -149,23 +152,22 @@ void	Server::check_inactivity(void)
 
 void	Server::handleNewClient(void)
 {
-	Client *newClient;
-	// // memset newClient?;
-	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to accept.\n";
+	if (DEBUG)
+		std::cout << "Creating a new client\n";
+	Client *newClient = NULL;
+	memset(newClient, 0, sizeof(Client));
+	int clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), (socklen_t*)sizeof(this->_serverAddr));
+	if (clientSocket == FAIL)
+		std::cerr << "Error : Failed to accept.\n";
 
-// in error 
- 
-	// check if too much client
 	// if (this->_nbClients + 1 > MAX_CLIENTS)
 	// {
-	// send message too much clients
-	// 
-	// close fd
-	// quit
+	// 	send(); "Too much clients connected.\n"
+	// 	close(client.getFd());
+	// 	return ;
 	// }
 
-
+	// check password valid ???? 
 
 // in success
 	
@@ -177,12 +179,13 @@ void	Server::handleNewClient(void)
 	if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
 		std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
 	this->_allClients.push_back(newClient);
+	this->_allFd.push_back((*newClient).getFd());
 	this->_nbClients += 1;
 }
 
 void	Server::handleNewRequest(void)
 {
-	// recv ???????????????
+	// recv ?
 
 	// if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
@@ -194,13 +197,22 @@ void	Server::handleNewRequest(void)
 	// 	std::cerr << "Error : Failed to accept.\n";
 }
 
-void	Server::loop(void)
-{
 	// if (connect(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to connect.\n";
-	if (DEBUG)
-		std::cout << "Enter in server loop.\n"; 
+
+void	Server::loop(void)
+{
 	check_inactivity();
+	if (DEBUG)
+		std::cout << "Enter in server loop.\n";
+
+	if (epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, -1) == FAIL)
+		std::cerr << "Error : Epoll_wait() failed.\n";
+	// if (epoll()) -> iterate on all fds stored in a vector
+	// {
+	// }
+	// if ()
 	handleNewClient();
-	handleNewRequest();
+	// else
+	// handleNewRequest();
 }

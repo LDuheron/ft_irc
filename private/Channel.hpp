@@ -1,7 +1,8 @@
-#ifndef Channel
-#define Channel
+#ifndef CHANNEL_HPP
+# define CHANNEL_HPP
 
-#include <string>
+# include <string>
+# include "Server.hpp"
 
 class Channel
 {
@@ -13,9 +14,8 @@ class Channel
 		std::string	admin;
 		std::string	nbClientConnected;
 		// banned  ?
-		// allowed ? 
+		// allowed ?
 
-		
 };
 
 // The channel is created implicitly when the first

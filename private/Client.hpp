@@ -9,7 +9,7 @@ class Client
 		int			_fd;
 		std::string	_nickname;
 		std::string	_username;
-		// epollfd
+		// epollfd ??
 
 	public:
 		Client();
