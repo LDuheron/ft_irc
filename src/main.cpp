@@ -8,6 +8,13 @@
 
 // CAP LS
 
+// void	signal_handler(int signal)
+// {
+// 	(void) signal;
+// 	std::cout << "Exiting server";
+// 	exit();
+// }
+
 int main(int argc, char **argv)
 {
 	if (argc != 3)
@@ -16,7 +23,8 @@ int main(int argc, char **argv)
 		return (ERROR);
 	}
 	Server	server(atoi(argv[1]), argv[2]);
-
+	// signal_handler(SIGINT);
+	// gerer signaux
 	// try 
 	// {
 		server.init_server();

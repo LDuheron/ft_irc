@@ -130,8 +130,8 @@ void	Server::init_server(void)
 	if (DEBUG)
 		std::cout << "Server initialisation successful.\n";
 
-	if (epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, -1) == FAIL)
-		std::cerr << "Error : Epoll_wait() failed.\n";
+	// if (epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, -1) == FAIL)
+	// 	std::cerr << "Error : Epoll_wait() failed.\n";
 
 	// this->_allSockets.push_back(this->_socket);
 
@@ -151,21 +151,16 @@ void	Server::handleNewClient(void)
 {
 	Client *newClient;
 	// // memset newClient?;
+	
 	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to accept.\n";
 
-// in error 
- 
-	// check if too much client
 	// if (this->_nbClients + 1 > MAX_CLIENTS)
 	// {
-	// send message too much clients
-	// 
-	// close fd
-	// quit
+	// 	send(); message too much clients
+	// 	close(client.getFd());
+	// 	return ;
 	// }
-
-
 
 // in success
 	
@@ -194,13 +189,19 @@ void	Server::handleNewRequest(void)
 	// 	std::cerr << "Error : Failed to accept.\n";
 }
 
-void	Server::loop(void)
-{
 	// if (connect(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to connect.\n";
+
+void	Server::loop(void)
+{
+	check_inactivity();
 	if (DEBUG)
 		std::cout << "Enter in server loop.\n"; 
-	check_inactivity();
-	handleNewClient();
-	handleNewRequest();
+	// if (epoll()) -> iterate on all fds stored in a vector
+	// {
+	// }
+	// if ()
+		handleNewClient();
+	// else
+		handleNewRequest();
 }

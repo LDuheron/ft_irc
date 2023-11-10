@@ -3,6 +3,7 @@
 # define SERVER_HPP
 
 # include <arpa/inet.h>
+# include <csignal>
 # include <sys/epoll.h>
 # include <fcntl.h>
 # include <fstream>
