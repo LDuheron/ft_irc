@@ -102,12 +102,7 @@ void	Server::init_serverAddr(void)
 {
 	this->_serverAddr.sin_family = AF_INET;
 	this->_serverAddr.sin_port = htons(this->_port);
-
-	// htonl(localhost);
-	// inet_addr("0.0.0.0"); // replace with actual server IP
 	this->_serverAddr.sin_addr.s_addr = INADDR_ANY;
-
-
 }
 
 void	Server::init_server(void)
@@ -120,35 +115,18 @@ void	Server::init_server(void)
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
 	if (this->_socket == FAIL)
 		std::cerr << "Error : Failed to create socket.\n";
-// SOCKET = file descriptor used for communication.
-// AF_INET = IPV4
-// SOCK_STREAM : Provides sequenced, reliable, bidirectional, connection-mode byte 
-// streams, and may provide a transmission mechanism for out-of-band data.
-// specifies that the commuinication is a two way reliable communicaction (TCP)
-// only one protocol alvailable for each type so 0.
 
 	// setsocktopt() ???
 
 	if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
 		std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
-// Fcntl : file control, par defaut lecture et ecriture sur socket sont bloauqntes = le programme reste en attante jusqu'a ce que 
-// les donnees arrivent = freeze/ ralentissement de la communication. Fcntl permet de passer en mode non bloquant meme s'il n'y a 
-// pas de donnees disponibles.
-// F_SETFL = set file status command with O_NONBLOCK arg.
 
 	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 		std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
-// BIND : used to assing an IP adress and port to the socket.
 
 	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
 		std::cerr << "Error : Failed to listen.\n";
-// LISTEN : marks the socket as passive: the socket will be used to accept cnnections. Create a queue ofconnections
-	
-	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), (socklen_t*)sizeof(&this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to accept.\n";
 
-// Epoll : used to manage events on file descriptors. It can efficiently handle a large number of file descriptors with a single 
-// system call and provides better performance as the number of file descriptors grows. 
 	if (DEBUG)
 		std::cout << "Server initialisation successful.\n";
 
@@ -157,7 +135,7 @@ void	Server::init_server(void)
 
 	// this->_allSockets.push_back(this->_socket);
 
-// RPL_WELCOME message
+	// RPL_WELCOME message
 
 	// close(this->_epollFd);
 }
