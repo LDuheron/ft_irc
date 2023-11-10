@@ -4,6 +4,6 @@
 
 enum
 {
-	RPL_WELWOME = 001,
+	RPL_WELCOME = 001,
 // message different nickname. 
 };

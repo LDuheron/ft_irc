@@ -4,8 +4,8 @@
 // Constructor -----------------------------------------------------------------
 
 Server::Server() :
-	_epoll_fd(0), _epoll_event(),
-	_IP(0), _nickname("DEFAULT"), _password("NULL"),
+	_epoll_fd(0), _epoll_event(), _IP(0),
+	_nickname("DEFAULT"), _nbClients(0), _password("NULL"),
 	_port(0), _serverAddr(), _socket(0)
 {
 	if (DEBUG)
@@ -13,8 +13,8 @@ Server::Server() :
 }
 
 Server::Server(int port, std::string password) :
-	_epoll_fd(0), _epoll_event(),
-	_IP(0),_nickname("DEFAULT"), _password(password),
+	_epoll_fd(0), _epoll_event(), _IP(0),
+	_nickname("DEFAULT"), _nbClients(0), _password(password),
 	_port(port), _serverAddr(), _socket(0)
 {
 	if (DEBUG)
@@ -22,8 +22,8 @@ Server::Server(int port, std::string password) :
 }
 
 Server::Server(Server const & src) :
-	_epoll_fd(0), _epoll_event(),
-	_IP(src._IP),_nickname(src._nickname), _password(src._password),
+	_epoll_fd(0), _epoll_event(), _IP(src._IP),
+	_nickname(src._nickname), _nbClients(src._nbClients), _password(src._password),
 	_port(src._port), _serverAddr(), _socket(src._socket)
 	
 {
@@ -149,19 +149,17 @@ void	Server::init_server(void)
 
 // Epoll : used to manage events on file descriptors. It can efficiently handle a large number of file descriptors with a single 
 // system call and provides better performance as the number of file descriptors grows. 
+	// if (DEBUG)
+	std::cout << "Server initialisation successful.\n";
 
 	if (epoll_wait(this->_epoll_fd, &this->_epoll_event, MAX_CLIENTS, -1) == FAIL)
 		std::cerr << "Error : Epoll_wait() failed.\n";
 
 	// this->_allSockets.push_back(this->_socket);
 
-	if (DEBUG)
-		std::cout << "Server initialisation successful.\n";
-
-	std::cout << ":Welcome to the <networkname> Network, " << this->_nickname << "[!<user>@<host>]";
 // RPL_WELCOME message
-	close(this->_epoll_fd);
 
+	// close(this->_epoll_fd);
 }
 
 // Functions - launch server -------------------------------------------------------------------
@@ -173,19 +171,36 @@ void	Server::check_inactivity(void)
 
 void	Server::handleNewClient(void)
 {
-	// create a new socket ;
-	// this->_allSocket.pushback();
-
-
-	// if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
-
-	// if (listen(this->_socket, MAX_CLIENTS) == FAIL)
-	// 	std::cerr << "Error : Failed to listen.\n";
-
+	// Client newClient;
+	// // memset(newClient);
 	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to accept.\n";
-// Accept : accept the queue created by listen().
+
+	// in error 
+ 
+	// check if too much client
+	// if (this->_nbClients + 1 > MAX_CLIENTS)
+	// {
+	// send message too much clients
+	// 
+	// close fd
+	// quit
+	// }
+
+	// in success
+
+	// this->_nbClients += 1;
+	// send(":IRC 001 ", this->_nickname, ":Welcome to the IRC Network, ", this->_nickname, "\n");
+
+	// {
+	// newClient.setFd(socket(AF_INET, SOCK_STREAM, 0));
+	// if (this->_socket == FAIL)
+	// 	std::cerr << "Error : Failed to create socket.\n";
+	// create a new socket ;
+	// if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
+	// 	std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
+	// this->_allSocket.pushback();
+	// }
 
 }
 
@@ -207,7 +222,8 @@ void	Server::loop(void)
 {
 	// if (connect(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to connect.\n";
-
+	// if (DEBUG)
+		std::cout << "Enter in server loop.\n"; 
 	check_inactivity();
 	handleNewClient();
 	handleNewRequest();
