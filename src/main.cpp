@@ -13,7 +13,10 @@ void	signalHandler(int signum)
 	(void) signum;
 	std::cout << "Exiting server.\n";
 	exit(SIGINT);
+	// close fd ?
 }
+
+// CLIENT OPERATOR ????????????????
 
 int main(int argc, char **argv)
 {

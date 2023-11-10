@@ -152,11 +152,13 @@ void	Server::check_inactivity(void)
 
 void	Server::handleNewClient(void)
 {
+	if (DEBUG)
+		std::cout << "Creating a new client\n";
 	Client *newClient = NULL;
 	memset(newClient, 0, sizeof(Client));
-
-	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to accept.\n";
+	int clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), (socklen_t*)sizeof(this->_serverAddr));
+	if (clientSocket == FAIL)
+		std::cerr << "Error : Failed to accept.\n";
 
 	// if (this->_nbClients + 1 > MAX_CLIENTS)
 	// {
@@ -164,6 +166,8 @@ void	Server::handleNewClient(void)
 	// 	close(client.getFd());
 	// 	return ;
 	// }
+
+	// check password valid ???? 
 
 // in success
 	
@@ -181,7 +185,7 @@ void	Server::handleNewClient(void)
 
 void	Server::handleNewRequest(void)
 {
-	// recv ???????????????
+	// recv ?
 
 	// if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 	// 	std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
@@ -208,7 +212,7 @@ void	Server::loop(void)
 	// {
 	// }
 	// if ()
-	// 	handleNewClient();
+	handleNewClient();
 	// else
 	// handleNewRequest();
 }

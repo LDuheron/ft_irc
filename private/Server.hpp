@@ -4,7 +4,6 @@
 
 # include <arpa/inet.h>
 # include <csignal>
-# include <sys/epoll.h>
 # include <fcntl.h>
 # include <fstream>
 # include <iostream>
@@ -14,10 +13,12 @@
 # include <stdio.h>
 # include <string>
 # include <string.h>
+# include <sys/epoll.h>
 # include <sys/socket.h>
 # include <unistd.h> 
 # include <vector>
 
+# include "Channel.hpp"
 # include "Client.hpp"
 
 # define DEBUG 1
@@ -34,19 +35,16 @@ class Server
 {
 	private:
 		std::vector<Client*>	_allClients;
-		std::vector<int>		_allFd;
+		std::vector<int>		_allFd;			// _allFd[0] = fd du server, else fd clients
 		int						_epollFd;
 		struct	epoll_event		_epollEvent;
-		int						_IP; //???
-		std::string				_nickname; // length max 9
+		int						_IP;			// ???
+		std::string				_nickname;		// length max 9
 		int						_nbClients;
 		std::string				_password;
 		int						_port;
 		struct	sockaddr_in 	_serverAddr;
 		int						_socket;
-
-		/////// [0] = fd du server, else fd clients
-		// structure avec les fds de select / pol / epoll ?
 
 	public:
 		Server();
