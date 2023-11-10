@@ -8,12 +8,12 @@
 
 // CAP LS
 
-// void	signal_handler(int signal)
-// {
-// 	(void) signal;
-// 	std::cout << "Exiting server";
-// 	exit();
-// }
+void	signalHandler(int signum)
+{
+	(void) signum;
+	std::cout << "Exiting server.\n";
+	exit(SIGINT);
+}
 
 int main(int argc, char **argv)
 {
@@ -23,8 +23,7 @@ int main(int argc, char **argv)
 		return (ERROR);
 	}
 	Server	server(atoi(argv[1]), argv[2]);
-	// signal_handler(SIGINT);
-	// gerer signaux
+	signal(SIGINT, signalHandler);
 	// try 
 	// {
 		server.init_server();

@@ -201,7 +201,7 @@ void	Server::loop(void)
 	// {
 	// }
 	// if ()
-		handleNewClient();
+	handleNewClient();
 	// else
-		handleNewRequest();
+	handleNewRequest();
 }
