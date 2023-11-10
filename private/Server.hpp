@@ -33,7 +33,8 @@ class Client;
 class Server
 {
 	private:
-		// std::vector<int>		_allSockets;
+		std::vector<Client*>	_allClients;
+		std::vector<int>		_allFd;
 		int						_epollFd;
 		struct	epoll_event		_epollEvent;
 		int						_IP; //???
@@ -43,7 +44,6 @@ class Server
 		int						_port;
 		struct	sockaddr_in 	_serverAddr;
 		int						_socket;
-		std::vector<Client*>	_allClients;
 
 		/////// [0] = fd du server, else fd clients
 		// structure avec les fds de select / pol / epoll ?

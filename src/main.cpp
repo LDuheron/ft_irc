@@ -24,15 +24,12 @@ int main(int argc, char **argv)
 	}
 	Server	server(atoi(argv[1]), argv[2]);
 	signal(SIGINT, signalHandler);
-	// try 
-	// {
-		server.init_server();
-		server.loop();
-	// }
-	// catch () {
-	// close(this->_socket);
 
-	// }
+	// try catch  ?
+	server.init_server();
+	while (1)
+		server.loop();
+
 	// close(server._epollFd);
 	return (SUCCESS);
 }

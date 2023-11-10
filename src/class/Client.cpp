@@ -3,7 +3,7 @@
 
 // Constructor -----------------------------------------------------------------
 
-Client::Client() : _fd(), _nickname("DEFAULT")
+Client::Client() : _fd(), _nickname("DEFAULT"), _username("DEFAULT")
 {
 	if (DEBUG)
 		std::cout << "Client : default constructor called.\n";
