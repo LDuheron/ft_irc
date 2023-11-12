@@ -42,7 +42,7 @@ CXXFLAGS	=	-c
 CXXFLAGS	+=	-Wall -Wextra -Werror
 CXXFLAGS	+=	-MMD -MP
 CXXFLAGS	+=	-Wshadow
-CXXFLAGS	+=	-std=c++98
+# CXXFLAGS	+=	-std=c++98
 CXXFLAGS	+=	-I${PRV_DIR}
 
 #######################################

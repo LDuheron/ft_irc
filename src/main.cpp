@@ -33,10 +33,10 @@ int main(int argc, char **argv)
 	while (1)
 	{
 		server.loop();
-		for (size_t i = 0; i < server.getAllClients().size(); i++)
-		{
-			server.processMessages();
-		}
+		// for (size_t i = 0; i < server.getAllClients().size(); i++)
+		// {
+		server.processMessages();
+		// }
 	}
 	// close(server._epollFd);
 	return (SUCCESS);
