@@ -20,8 +20,6 @@ class Client
 		void		setFd(int fd);
 
 		Client &	operator=(Client const & rhs);
-
-		void	handlePing(const std::string &pingData);
 };
 
 #endif

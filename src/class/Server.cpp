@@ -129,8 +129,10 @@ void	Server::init_server(void)
 
 	// setsocktopt() ???
 
-	if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
-		std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
+	// Server should not be in non-blocking mode ?
+	// ==> the accept() function will block until a client connects to the server
+	// if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
+	// 	std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
 
 	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 		std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
@@ -159,11 +161,16 @@ void	Server::handleNewClient(void)
 {
 	if (DEBUG)
 		std::cout << "Creating a new client\n";
-	Client *newClient = NULL;
-	memset(newClient, 0, sizeof(Client));
+	// Client *newClient = new Client; // allocation should be there ?
+	// memset(newClient, 0, sizeof(Client));
 	int clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), (socklen_t*)sizeof(this->_serverAddr));
 	if (clientSocket == FAIL)
 		std::cerr << "Error : Failed to accept.\n";
+	if (clientSocket != FAIL)
+	{
+		if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == FAIL)
+			std::cerr << "Error: Failed to configurate client socket in O_NONBLOCK mode.\n";
+	}
 
 	// if (this->_nbClients + 1 > MAX_CLIENTS)
 	// {
@@ -177,12 +184,12 @@ void	Server::handleNewClient(void)
 // in success
 	
 	// send(":IRC 001 ", this->_nickname, ":Welcome to the IRC Network, ", this->_nickname, "\n");
-	newClient = new Client;
-	(*newClient).setFd(socket(AF_INET, SOCK_STREAM, 0));
-	if ((*newClient).getFd() == FAIL)
+	Client *newClient = new Client;
+	newClient->setFd(socket(AF_INET, SOCK_STREAM, 0));
+	if (newClient->getFd() == FAIL)
 		std::cerr << "Error : Failed to create socket.\n";
-	if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
-		std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
+	// if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
+	// 	std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
 	this->_allClients.push_back(newClient);
 	this->_allFd.push_back((*newClient).getFd());
 	this->_nbClients += 1;
