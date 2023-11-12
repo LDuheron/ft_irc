@@ -1,3 +1,4 @@
+#pragma once
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
@@ -19,6 +20,8 @@ class Client
 		void		setFd(int fd);
 
 		Client &	operator=(Client const & rhs);
+
+		void	handlePing(const std::string &pingData);
 };
 
 #endif

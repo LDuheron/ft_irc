@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "../private/Server.hpp"
 
 ///// generer client via Irssi.org
 // commande pour se connecter a irssi :
@@ -31,8 +31,13 @@ int main(int argc, char **argv)
 	// try catch  ?
 	server.init_server();
 	while (1)
+	{
 		server.loop();
-
+		for (size_t i = 0; i < server.getAllClients().size(); i++)
+		{
+			server.processMessages();
+		}
+	}
 	// close(server._epollFd);
 	return (SUCCESS);
 }

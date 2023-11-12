@@ -1,5 +1,5 @@
-
-#include "Server.hpp"
+#include "../../private/Server.hpp"
+#include <cstddef>
 
 // Constructor -----------------------------------------------------------------
 
@@ -63,6 +63,11 @@ int const &	Server::getPort(void) const
 void	Server::setSocket(int newSocket)
 {
 	this->_socket = newSocket;
+}
+
+std::vector<Client*> const &	Server::getAllClients(void) const
+{
+	return (this->_allClients);
 }
 
 // Overload --------------------------------------------------------------------
@@ -215,4 +220,50 @@ void	Server::loop(void)
 	handleNewClient();
 	// else
 	// handleNewRequest();
+}
+
+void	Server::processMessages()
+{
+	char	buffer[MAX_MESSAGE_LENGTH];
+	int		bytesRead;
+
+	for (size_t i = 0; i < this->_allClients.size(); ++i)
+	{
+		Client *client = this->_allClients[i];
+		bytesRead = recv(client->getFd(), buffer, MAX_MESSAGE_LENGTH, 0);
+		if (bytesRead <= 0)
+		{
+			//handle disconnection / errors
+			//remove client from the list
+			//can use vector erase here
+		} else
+		{
+			buffer[bytesRead] = '\0';
+			processMessage(client, buffer);
+		}
+	}
+}
+
+void	Server::processMessage(Client *client, const char *message)
+{
+	std::string msg = message;
+	if (msg.substr(0, 4) == "PING")
+		handlePing(client->getFd(), msg.substr(5));
+	/*
+	else if (msg.substr(0, 4) == "JOIN")
+	else if (msg.substr(0, 4) == "KICK")
+	else if (msg.substr(0, 6) == "INVITE")
+	else if (msg.substr(0, 5) == "TOPIC")
+	else if (msg.substr(0, 4) == "MODE")
+	*/
+}
+
+void	Server::handlePing(int clientSocket, const std::string &pingData)
+{
+	// send() pong
+	// if (send() == FAIL)
+	// 	std::cerr << "Error : Failed to send pong.\n";
+
+	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
+	send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0);
 }

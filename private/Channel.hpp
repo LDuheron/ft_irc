@@ -1,7 +1,8 @@
+#pragma once
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
-# include <string>
+# include "Client.hpp"
 # include "Server.hpp"
 
 class Channel

@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
@@ -28,6 +28,7 @@
 # define ERROR 1
 
 # define MAX_CLIENTS 10
+# define MAX_MESSAGE_LENGTH 512
 
 class Client;
 
@@ -59,6 +60,7 @@ class Server
 		std::string const 	&getPassword(void) const;
 		int const 			&getPort(void) const;
 		int const 			&getSocket(void) const;
+		std::vector<Client*> const &getAllClients(void) const;
 
 		void				setSocket(int newSocket);
 
@@ -69,6 +71,10 @@ class Server
 		void				check_inactivity(void);
 		void				handleNewClient(void);
 		void				handleNewRequest(void);
+
+		void				processMessages();
+		void				processMessage(Client *client, const char *message);
+		void				handlePing(int clientSocket, const std::string &pingData);
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const & rhs);
