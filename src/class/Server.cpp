@@ -1,5 +1,6 @@
 #include "../../private/Server.hpp"
 #include <cstddef>
+#include <sys/epoll.h>
 
 // Constructor -----------------------------------------------------------------
 
@@ -145,6 +146,14 @@ void	Server::init_server(void)
 
 	this->_allFd.push_back(this->_socket);
 
+////////// test rapidos
+	this->_epollEvent.events = EPOLLIN;
+	this->_epollEvent.data.fd = this->_socket;
+
+	if (epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, this->_socket, &this->_epollEvent) == FAIL)
+		std::cerr << "Error : Failed to add socket to epoll.\n";
+//////////
+
 	// RPL_WELCOME message
 
 	// close(this->_epollFd);
@@ -224,13 +233,25 @@ void	Server::loop(void)
 	// {
 	// }
 	// if ()
+
 	handleNewClient();
+	/*
+	should only be done if there are events in the epoll set
+	-> check the events returned by epoll_wait and handle them accordingly
+	-> if an event corresponds to the server socket (listening for
+		new connections), then call accept inside the event handling.
+	*/
+
+
 	// else
 	// handleNewRequest();
+
 }
 
 void	Server::processMessages()
 {
+	std::cout << " PROCESSING MESSAGE " << std::endl;
+
 	char	buffer[MAX_MESSAGE_LENGTH];
 	int		bytesRead;
 
@@ -240,9 +261,11 @@ void	Server::processMessages()
 		bytesRead = recv(client->getFd(), buffer, MAX_MESSAGE_LENGTH, 0);
 		if (bytesRead <= 0)
 		{
-			//handle disconnection / errors
-			//remove client from the list
-			//can use vector erase here
+			/*
+			- handle disconnection / errors
+			- remove client from the list
+			- can use vector erase here
+			*/
 		} else
 		{
 			buffer[bytesRead] = '\0';
@@ -267,10 +290,7 @@ void	Server::processMessage(Client *client, const char *message)
 
 void	Server::handlePing(int clientSocket, const std::string &pingData)
 {
-	// send() pong
-	// if (send() == FAIL)
-	// 	std::cerr << "Error : Failed to send pong.\n";
-
 	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
-	send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0);
+	if (send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0) == FAIL)
+		std::cerr << "Error : Failed to send pong.\n";
 }
