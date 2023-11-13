@@ -32,9 +32,9 @@ int main(int argc, char **argv)
 	server.init_server();
 	while (1)
 	{
-		server.loop();
 		// for (size_t i = 0; i < server.getAllClients().size(); i++)
 		// {
+		server.loop();
 		server.processMessages();
 		// }
 	}

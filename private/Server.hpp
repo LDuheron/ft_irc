@@ -73,8 +73,15 @@ class Server
 		void				handleNewClient(void);
 		void				handleNewRequest(void);
 
+		//Gestion temporaire de tous les messages reçus
 		void				processMessages();
+		//Gestion temporaire du message reçu par un client spécifique
 		void				processMessage(Client *client, const char *message);
+		/**
+		Gestion temporaire du ping
+		
+		@param clientSocket : socket du client qui a envoyé le ping
+		*/
 		void				handlePing(int clientSocket, const std::string &pingData);
 };
 

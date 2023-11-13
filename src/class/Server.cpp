@@ -238,9 +238,14 @@ void	Server::loop(void)
 {
 	check_inactivity();
 	if (DEBUG)
-		std::cout << "Enter in server loop.\n";
-
-	int fd_ready = epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, -1);
+		;// std::cout << "Enter in server loop.\n";
+	
+	/*
+		Mettre un timeout pour epoll_wait ? Sinon le programme bloque en attendant un nouvel event
+		mais on veut pouvoir checker les messages des clients deja connectes
+		=> ouais bon ça marche moyen
+	*/
+	int fd_ready = epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, 1);
 	if (fd_ready == FAIL)
 		std::cerr << "Error : Epoll_wait() failed.\n";
 	for (int i = 0; i < fd_ready; i++)
@@ -293,7 +298,7 @@ void	Server::processMessages()
 		} else
 		{
 			buffer[bytesRead] = '\0';
-			std::cout << " PROCESSING MESSAGE " << std::endl;
+			std::cout << " PROCESSING MESSAGE " << buffer << std::endl;
 			processMessage(client, buffer);
 		}
 	}
