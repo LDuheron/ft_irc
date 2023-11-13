@@ -196,6 +196,7 @@ void	Server::handleNewClient(void)
 		close(clientSocket);
 		return ;
 	}
+
 	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == FAIL)
 	{
 		std::cerr << "Error: Failed to configurate client socket in O_NONBLOCK mode.\n";
