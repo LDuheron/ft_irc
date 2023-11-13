@@ -171,6 +171,17 @@ void	Server::init_server(void)
 	std::cout << "port : " << this->_port << std::endl;
 }
 
+
+// Clean data ----------------------------------------------------------------------------------
+
+void	Server::clean_fd(void)
+{
+    for (int i = 0; i < MAX_CLIENTS; ++i)
+        close(this->_allFd[i]);
+    close(this->_socket);
+    close(this->_epollFd);
+}
+
 // Functions - launch server -------------------------------------------------------------------
 
 void	Server::check_inactivity(void)

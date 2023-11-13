@@ -67,6 +67,7 @@ class Server
 
 		void				init_serverAddr(void);
 		void				init_server(void);
+		void				clean_fd(void);
 		void				loop(void);
 
 		void				check_inactivity(void);
