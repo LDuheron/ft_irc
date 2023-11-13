@@ -119,16 +119,16 @@ void	Server::init_serverAddr(void)
 	memset(&this->_serverAddr, 0, sizeof(this->_serverAddr));
 	this->_serverAddr.sin_family = AF_INET;
 	this->_serverAddr.sin_port = htons(this->_port);
-	// this->_serverAddr.sin_addr.s_addr = INADDR_ANY;
-	this->_serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	this->_serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // htonl(INADDR_ANY)
 }
 
 void	Server::init_server(void)
 {
 	init_serverAddr();
-	this->_epollFd = epoll_create1(0);
-	if (this->_epollFd == FAIL)
-		std::cerr << "Error: Failed to epoll.\n";
+	// Server should not be in non-blocking mode ?
+	// ==> the accept() function will block until a client connects to the server
+	// if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
+	// 	std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
 
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
 	std::cout << "socket : " << this->_socket << std::endl;
@@ -138,25 +138,22 @@ void	Server::init_server(void)
 
 	// setsocktopt() ???
 
-	// Server should not be in non-blocking mode ?
-	// ==> the accept() function will block until a client connects to the server
-	// if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
-	// 	std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
-
 	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 		std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
 	std::cout << "bind : " << this->_socket << std::endl;
 	perror("bind:");
+
 	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
 		std::cerr << "Error : Failed to listen.\n";
 	std::cout << "listen : " << this->_socket << std::endl;
 	perror("listen:");
-	if (DEBUG)
-		std::cout << "Server initialisation successful.\n";
 
 	this->_allFd.push_back(this->_socket);
 
-////////// test rapidos
+////////// test rapidos	
+	this->_epollFd = epoll_create1(0);
+	if (this->_epollFd == FAIL)
+		std::cerr << "Error: Failed to epoll.\n";
 	this->_epollEvent.events = EPOLLIN;
 	this->_epollEvent.data.fd = this->_socket;
 
@@ -164,22 +161,28 @@ void	Server::init_server(void)
 		std::cerr << "Error : Failed to add socket to epoll.\n";
 //////////
 
-	// RPL_WELCOME message
+	if (DEBUG)
+		std::cout << "Server initialisation successful.\n";
 
-	// close(this->_epollFd);
 	std::cout << "server socket : " << this->_socket << std::endl;
-	std::cout << "port : " << this->_port << std::endl;
+	// std::cout << "port : " << this->_port << std::endl;
 }
 
+// Exit clean ----------------------------------------------------------------------------------
 
-// Clean data ----------------------------------------------------------------------------------
-
-void	Server::clean_fd(void)
+void	Server::cleanFd(void)
 {
     for (int i = 0; i < MAX_CLIENTS; ++i)
         close(this->_allFd[i]);
     close(this->_socket);
     close(this->_epollFd);
+}
+
+void	Server::exitingServer(void)
+{
+	cleanFd();
+	std::cout << "Exiting server.\n";
+	exit(EXIT_SUCCESS);
 }
 
 // Functions - launch server -------------------------------------------------------------------
@@ -192,14 +195,12 @@ void	Server::check_inactivity(void)
 void	Server::handleNewClient(void)
 {
 	if (DEBUG)
-		std::cout << "Creating a new client\n";
+		std::cout << "\n--- Creating a new client\n";
 
 	socklen_t addrLen = sizeof(this->_serverAddr);
-
 	int clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), &addrLen);
 	std::cout << "new client fd : " << clientSocket << std::endl;
 	perror("accept:");
-
 	// Attempt to accept a new client connection
 	if (clientSocket == FAIL)
 	{
@@ -214,19 +215,30 @@ void	Server::handleNewClient(void)
 		close(clientSocket);
 		return ;
 	}
+
 	if (this->_nbClients >= MAX_CLIENTS)
 	{
 		std::cerr << "Error : Too much clients connected.\n";
 		close(clientSocket);
 		return ;
 	}
+
 	if (clientSocket == FAIL)
 		std::cerr << "Error : Failed to create socket.\n";
+
+
+	if (epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, clientSocket, &this->_epollEvent))
+		std::cerr << "Error : Failed to add socket to epoll.\n";
+
 	Client *newClient = new Client;
 	newClient->setFd(clientSocket);
+
 	this->_allClients.push_back(newClient);
 	this->_allFd.push_back(clientSocket);
 	this->_nbClients += 1;
+
+	if (DEBUG)
+		std::cout << "--- Client created !\n\n";
 }
 
 void	Server::handleNewRequest(void)
@@ -250,22 +262,25 @@ void	Server::loop(void)
 {
 	check_inactivity();
 	if (DEBUG)
-		std::cout << "Enter in server loop.\n";
+		std::cout << "\nEnter in server loop.\n";
 
-	int fd_ready = epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, -1);
-	if (fd_ready == FAIL)
-		std::cerr << "Error : Epoll_wait() failed.\n";
-	for (int i = 0; i < fd_ready; i++)
+	while (1)
 	{
-		if (this->_epollEvent.data.fd == this->_socket){
-			handleNewClient();
-			std::cout << "New client connected.\n";
+		int fd_ready = epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, -1);
+		if (fd_ready == FAIL)
+			std::cerr << "Error : Epoll_wait() failed.\n";
+		for (int i = 0; i < fd_ready; i++)
+		{
+			if (this->_epollEvent.data.fd == this->_socket){
+				handleNewClient();
+				std::cout << "New client connected.\n";
+			}
 		}
 	}
+
 	// if (epoll()) -> iterate on all fds stored in a vector
 	// {
 	// }
-	// if ()
 
 	/*
 	should only be done if there are events in the epoll set

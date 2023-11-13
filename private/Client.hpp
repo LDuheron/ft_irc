@@ -7,9 +7,9 @@
 class Client
 {
 	private:
-		int			_fd;
-		std::string	_nickname;
-		std::string	_username;
+		int					_fd;
+		std::string			_nickname;
+		std::string			_username;
 		// epollfd ??
 
 	public:

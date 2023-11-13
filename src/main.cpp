@@ -11,7 +11,6 @@
 void	signalHandler(int signum)
 {
 	(void) signum;
-	std::cout << "Exiting server.\n";
 	exit(SIGINT);
 	// close fd ?
 }
@@ -23,13 +22,14 @@ int main(int argc, char **argv)
 	if (argc != 3)
 	{
 		std::cerr << "Error: Usage is ./ircserv <port> <password>";
-		return (ERROR);
+		return (EXIT_FAILURE);
 	}
-	Server	server(atoi(argv[1]), argv[2]);
 	signal(SIGINT, signalHandler);
+	Server	server(atoi(argv[1]), argv[2]);
 
 	// try catch  ?
 	server.init_server();
+	std::cout << "Listening on port " << server.getPort() << ".\n";
 	while (1)
 	{
 		server.loop();
@@ -39,5 +39,5 @@ int main(int argc, char **argv)
 		// }
 	}
 	// close(server._epollFd);
-	return (SUCCESS);
+	return (EXIT_SUCCESS);
 }
