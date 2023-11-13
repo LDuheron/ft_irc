@@ -3,6 +3,7 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <system_error>
 
 // Constructor -----------------------------------------------------------------
@@ -182,14 +183,9 @@ void	Server::handleNewClient(void)
 	if (DEBUG)
 		std::cout << "Creating a new client\n";
 
-	// Client *newClient = new Client;
-	/*
-	Need to figure out why accept returns -1:
-	- socket not properly initialized ?
-		-> check socket() bind() and listen() return values
-	*/
-	// int clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), (socklen_t*)sizeof(this->_serverAddr));
-	int clientSocket = accept(this->_socket, NULL, NULL);
+	socklen_t addrLen = sizeof(this->_serverAddr);
+
+	int clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), &addrLen);
 	std::cout << "new client fd : " << clientSocket << std::endl;
 	perror("accept:");
 
@@ -289,6 +285,11 @@ void	Server::processMessages()
 			- remove client from the list
 			- can use vector erase here
 			*/
+			std::cout << "Client disconnected: " << client->getFd() << std::endl;
+			this->_allClients.erase(this->_allClients.begin() + i);
+			this->_allFd.erase(this->_allFd.begin() + i);
+			delete client;
+			this->_nbClients--;
 		} else
 		{
 			buffer[bytesRead] = '\0';
