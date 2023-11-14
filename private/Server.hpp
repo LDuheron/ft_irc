@@ -22,7 +22,8 @@
 # include "Channel.hpp"
 # include "Client.hpp"
 
-# define DEBUG 1
+# define DEBUG 0
+# define DEBUG2 1
 
 # define FAIL -1
 # define SUCCESS 0
@@ -30,6 +31,7 @@
 
 # define MAX_CLIENTS 10
 # define MAX_MESSAGE_LENGTH 512
+
 
 class Client;
 
@@ -76,10 +78,10 @@ class Server
 		//Gestion temporaire de tous les messages reçus
 		void				processMessages();
 		//Gestion temporaire du message reçu par un client spécifique
-		void				processMessage(Client *client, const char *message);
+		void				processMessage(Client *client, const std::string message);
 		/**
 		Gestion temporaire du ping
-		
+
 		@param clientSocket : socket du client qui a envoyé le ping
 		*/
 		void				handlePing(int clientSocket, const std::string &pingData);

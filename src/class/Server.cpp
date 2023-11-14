@@ -1,4 +1,5 @@
 #include "../../private/Server.hpp"
+#include <asm-generic/errno.h>
 #include <cstddef>
 #include <iostream>
 #include <netinet/in.h>
@@ -129,10 +130,9 @@ void	Server::init_server(void)
 	this->_epollFd = epoll_create1(0);
 	if (this->_epollFd == FAIL)
 		std::cerr << "Error: Failed to epoll.\n";
-
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
-	std::cout << "socket : " << this->_socket << std::endl;
-	perror("socket:");
+	if(DEBUG)
+		perror("socket:");
 	if (this->_socket == FAIL)
 		std::cerr << "Error : Failed to create socket.\n";
 
@@ -145,15 +145,18 @@ void	Server::init_server(void)
 
 	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 		std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
-	std::cout << "bind : " << this->_socket << std::endl;
-	perror("bind:");
+	if (DEBUG)
+		std::cout << "bind : " << this->_socket << std::endl;
+	if (DEBUG)
+		perror("bind:");
 	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
 		std::cerr << "Error : Failed to listen.\n";
-	std::cout << "listen : " << this->_socket << std::endl;
-	perror("listen:");
+	if (DEBUG)
+		std::cout << "listen : " << this->_socket << std::endl;
+	if (DEBUG)
+		perror("listen:");
 	if (DEBUG)
 		std::cout << "Server initialisation successful.\n";
-
 	this->_allFd.push_back(this->_socket);
 
 ////////// test rapidos
@@ -167,8 +170,11 @@ void	Server::init_server(void)
 	// RPL_WELCOME message
 
 	// close(this->_epollFd);
-	std::cout << "server socket : " << this->_socket << std::endl;
-	std::cout << "port : " << this->_port << std::endl;
+	if (DEBUG)
+	{
+		std::cout << "server socket : " << this->_socket << std::endl;
+		std::cout << "port : " << this->_port << std::endl;
+	}
 }
 
 // Functions - launch server -------------------------------------------------------------------
@@ -187,7 +193,8 @@ void	Server::handleNewClient(void)
 
 	int clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), &addrLen);
 	std::cout << "new client fd : " << clientSocket << std::endl;
-	perror("accept:");
+	if ( DEBUG)
+		perror("accept:");
 
 	// Attempt to accept a new client connection
 	if (clientSocket == FAIL)
@@ -283,13 +290,24 @@ void	Server::processMessages()
 	{
 		Client *client = this->_allClients[i];
 		bytesRead = recv(client->getFd(), buffer, MAX_MESSAGE_LENGTH, 0);
-		if (bytesRead <= 0)
+		if (bytesRead < 0)
 		{
-			/*
-			- handle disconnection / errors
-			- remove client from the list
-			- can use vector erase here
-			*/
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+			{
+				// No data available yet, continue to the next client
+				continue;
+			} else
+			{
+				/*
+				- handle disconnection / errors
+				- remove client from the list
+				- can use vector erase here
+				*/
+				std::cerr << "Error : Failed to receive data from client" << client->getFd() << ": " << strerror(errno) << std::endl;
+			}
+			// std::cout << "Client disconnected: " << client->getFd() << std::endl;
+		} else if (bytesRead == 0)
+		{
 			std::cout << "Client disconnected: " << client->getFd() << std::endl;
 			this->_allClients.erase(this->_allClients.begin() + i);
 			this->_allFd.erase(this->_allFd.begin() + i);
@@ -298,18 +316,34 @@ void	Server::processMessages()
 		} else
 		{
 			buffer[bytesRead] = '\0';
-			std::cout << " PROCESSING MESSAGE " << buffer << std::endl;
+			std::cout << "processing incoming message :\n" << buffer << std::endl;
 			processMessage(client, buffer);
 		}
 	}
 }
 
-void	Server::processMessage(Client *client, const char *message)
+void	Server::processMessage(Client *client, const std::string message)
 {
-	std::string msg = message;
-	if (msg.substr(0, 4) == "PING"){
+	std::string ackMessage1 = "ACK 001 :Welcome to the IRC Network";
+	std::string ackMessage2 = "002 :Your host is " + this->_nickname;
+	std::string ackMessage3 = "003 :this server was created today";
+	std::string ackMessage4 = "004" + this->_nickname;
+	if (message.substr(0,6) == "CAP LS")
+	{
+		std::cout << "we there bro" << std::endl;
+		if (send(client->getFd(), ackMessage1.c_str(), ackMessage1.length(), MSG_NOSIGNAL) == -1)
+			std::cerr << "Error : Failed to send ack.\n";
+		if (send(client->getFd(), ackMessage2.c_str(), ackMessage2.length(), MSG_NOSIGNAL) == -1)
+			std::cerr << "Error : Failed to send ack.\n";
+		if (send(client->getFd(), ackMessage3.c_str(), ackMessage3.length(), MSG_NOSIGNAL) == -1)
+			std::cerr << "Error : Failed to send ack.\n";
+		if (send(client->getFd(), ackMessage4.c_str(), ackMessage4.length(), MSG_NOSIGNAL) == -1)
+			std::cerr << "Error : Failed to send ack.\n";
+	
+	}
+	if (message.substr(0, 4) == "PING"){
 		std::cout << "PING RECEIVED" << std::endl;
-		handlePing(client->getFd(), msg.substr(5));
+		handlePing(client->getFd(), message.substr(5));
 	}
 	/*
 	else if (msg.substr(0, 4) == "JOIN")
