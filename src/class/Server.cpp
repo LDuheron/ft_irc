@@ -6,6 +6,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <system_error>
+#include <utility>
 
 // Constructor -----------------------------------------------------------------
 
@@ -132,45 +133,39 @@ void	Server::init_serverAddr(void)
 void	Server::init_server(void)
 {
 	init_serverAddr();
+
+	//epoll call
 	this->_epollFd = epoll_create1(0);
+	this->_eventArray[0].events = EPOLLIN | EPOLLOUT;
+	this->_eventArray[0].data.fd = this->_socket;
 	if (this->_epollFd == FAIL)
 		std::cerr << "Error: Failed to epoll.\n";
+	if (epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, this->_socket, &this->_eventArray[0]) == FAIL)
+		std::cerr << "Error : Failed to add socket to epoll.\n";
+
+	// Create socket
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
-	if(DEBUG)
+	if(DEBUG2)
 		perror("socket:");
 	if (this->_socket == FAIL)
 		std::cerr << "Error : Failed to create socket.\n";
 
-	// setsocktopt() ???
-
-	// Server should not be in non-blocking mode ?
-	// ==> the accept() function will block until a client connects to the server
-	// if (fcntl(this->_socket, F_SETFL, O_NONBLOCK) == FAIL)
-	// 	std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
-
+	// Bind socket to IP / port
 	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
 		std::cerr << "Error : Failed to bind to port " << this->_serverPort << ".\n";
-	if (DEBUG)
-		std::cout << "bind : " << this->_socket << std::endl;
-	if (DEBUG)
+	if (DEBUG2)
 		perror("bind:");
+
+	// Listen on socket
 	if (listen(this->_socket, MAX_CLIENTS) == FAIL)
 		std::cerr << "Error : Failed to listen.\n";
-	if (DEBUG)
-		std::cout << "listen : " << this->_socket << std::endl;
-	if (DEBUG)
+	if (DEBUG2)
 		perror("listen:");
-	if (DEBUG)
+	if (DEBUG2)
 		std::cout << "Server initialisation successful.\n";
 	this->_allFd.push_back(this->_socket);
 
-////////// test rapidos
-	this->_epollEvent.events = EPOLLIN;
-	this->_epollEvent.data.fd = this->_socket;
 
-	if (epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, this->_socket, &this->_epollEvent) == FAIL)
-		std::cerr << "Error : Failed to add socket to epoll.\n";
-//////////
 
 	// RPL_WELCOME message
 
@@ -191,23 +186,23 @@ void	Server::check_inactivity(void)
 
 void	Server::handleNewClient(void)
 {
+	static int id = 0;
+
 	if (DEBUG)
 		std::cout << "Creating a new client\n";
 
-	socklen_t addrLen = sizeof(this->_serverAddr);
-
-	int clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), &addrLen);
-	std::cout << "new client fd : " << clientSocket << std::endl;
-	if ( DEBUG)
-		perror("accept:");
+	socklen_t	addrLen = sizeof(this->_serverAddr);
+	int			clientSocket;
 
 	// Attempt to accept a new client connection
-	if (clientSocket == FAIL)
+	if ((clientSocket = accept(this->_socket, (struct sockaddr*)&(this->_serverAddr), &addrLen) == FAIL))
 	{
 		std::cerr << "Error : Failed to accept client connection.\n";
 		close(clientSocket);
 		return ;
 	}
+	if (DEBUG2)
+		perror ("accept:");
 	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == FAIL)
 	{
 		std::cerr << "Error: Failed to configurate client socket in O_NONBLOCK mode.\n";
@@ -222,50 +217,44 @@ void	Server::handleNewClient(void)
 	}
 	if (clientSocket == FAIL)
 		std::cerr << "Error : Failed to create socket.\n";
-	Client *newClient = new Client;
+	Client *newClient = new Client(++id);
 	newClient->setFd(clientSocket);
-	this->_allClients.push_back(newClient);
+	this->_clientMap.insert(std::make_pair(newClient->getId(), newClient));
 	this->_allFd.push_back(clientSocket);
-	this->_nbClients += 1;
+	++this->_nbClients;
+
+	//epoll call
+	this->_eventArray[id].events = EPOLLIN | EPOLLOUT;
+	this->_eventArray[id].data.fd = clientSocket;
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, clientSocket, &this->_eventArray[id]) == FAIL)
+		std::cerr << "Error : Failed to add socket to epoll.\n";
+	std::cout << "New client connected : " << clientSocket << std::endl;
 }
 
 void	Server::handleNewRequest(void)
-{
-	// recv ?
-
-	// if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
-
-	// if (listen(this->_socket, MAX_CLIENTS) == FAIL)
-	// 	std::cerr << "Error : Failed to listen.\n";
-
-	// if (accept(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to accept.\n";
-}
-
-	// if (connect(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-	// 	std::cerr << "Error : Failed to connect.\n";
+{}
 
 void	Server::loop(void)
 {
 	check_inactivity();
 	if (DEBUG)
 		;// std::cout << "Enter in server loop.\n";
-	
+
 	/*
 		Mettre un timeout pour epoll_wait ? Sinon le programme bloque en attendant un nouvel event
 		mais on veut pouvoir checker les messages des clients deja connectes
 		=> ouais bon ça marche moyen
 	*/
-	int fd_ready = epoll_wait(this->_epollFd, &this->_epollEvent, MAX_CLIENTS, 1);
+	std::cout << "epoll_wait\n";
+	int fd_ready = epoll_wait(this->_epollFd, this->_eventArray.data(), MAX_CLIENTS, 1);
 	if (fd_ready == FAIL)
 		std::cerr << "Error : Epoll_wait() failed.\n";
 	for (int i = 0; i < fd_ready; i++)
 	{
-		if (this->_epollEvent.data.fd == this->_socket){
+		if (this->_eventArray[0].data.fd == this->_socket)
 			handleNewClient();
-			std::cout << "New client connected.\n";
-		}
+		else
+			processMessages();
 	}
 	// if (epoll()) -> iterate on all fds stored in a vector
 	// {
@@ -285,46 +274,47 @@ void	Server::loop(void)
 
 }
 
-void	Server::processMessages()
+void	Server::processMessages(Client *client)
 {
 
 	char	buffer[MAX_MESSAGE_LENGTH];
 	int		bytesRead;
 
-	for (size_t i = 0; i < this->_allClients.size(); ++i)
+	// for (std::map<int, Client *>::iterator it = this->_clientMap.begin(); it != this->_clientMap.end();)
+	// {
+	// 	Client *client = it->second;
+	bytesRead = recv(client->getFd(), buffer, MAX_MESSAGE_LENGTH, 0);
+	if (bytesRead < 0) // Make a function for this
 	{
-		Client *client = this->_allClients[i];
-		bytesRead = recv(client->getFd(), buffer, MAX_MESSAGE_LENGTH, 0);
-		if (bytesRead < 0)
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
 		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-			{
-				// No data available yet, continue to the next client
-				continue;
-			} else
-			{
-				/*
-				- handle disconnection / errors
-				- remove client from the list
-				- can use vector erase here
-				*/
-				std::cerr << "Error : Failed to receive data from client" << client->getFd() << ": " << strerror(errno) << std::endl;
-			}
-			// std::cout << "Client disconnected: " << client->getFd() << std::endl;
-		} else if (bytesRead == 0)
-		{
-			std::cout << "Client disconnected: " << client->getFd() << std::endl;
-			this->_allClients.erase(this->_allClients.begin() + i);
-			this->_allFd.erase(this->_allFd.begin() + i);
-			delete client;
-			this->_nbClients--;
+			// No data available yet, continue to the next client
+			// std::cout << " ici \n";
+			// continue;
 		} else
 		{
-			buffer[bytesRead] = '\0';
-			std::cout << "processing incoming message :\n" << buffer << std::endl;
-			processMessage(client, buffer);
+			/*
+			- handle disconnection / errors
+			- remove client from the list
+			- can use vector erase here
+			*/
+			std::cerr << "Error : Failed to receive data from client" << client->getFd() << " : " << strerror(errno) << std::endl;
 		}
+		// std::cout << "Client disconnected: " << client->getFd() << std::endl;
+	} else if (bytesRead == 0)
+	{
+		std::cout << "Client disconnected: " << client->getFd() << std::endl;
+		// it = this->_clientMap.erase(it);
+		// this->_allFd.erase(this->_allFd.begin() + i);
+		this->_clientMap.erase(client->getId());
+		delete client;
+		this->_nbClients--;
+	} else {
+		buffer[bytesRead] = '\0';
+		std::cout << "processing incoming message :\n" << buffer << std::endl;
+		processMessage(client, buffer);
 	}
+	// }
 }
 
 void	Server::processMessage(Client *client, const std::string message)
@@ -332,13 +322,13 @@ void	Server::processMessage(Client *client, const std::string message)
 	if (message.substr(0,6) == "CAP LS")
 	{
 		std::cout << "we there bro" << std::endl;
-		if (send(client->getFd(), RPL_WELCOME, , MSG_NOSIGNAL) == -1)
+		if (send(client->getFd(), "001", 3, MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getFd(), RPL_YOURHOST, 3, MSG_NOSIGNAL) == -1)
+		if (send(client->getFd(), "002", 3, MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getFd(), RPL_CREATED, 3, MSG_NOSIGNAL) == -1)
+		if (send(client->getFd(), "003", 3, MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getFd(), TPL_MYINFO, 3, MSG_NOSIGNAL) == -1)
+		if (send(client->getFd(), "004", 3, MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
 	}
 	if (message.substr(0, 4) == "PING"){

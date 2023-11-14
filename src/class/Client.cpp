@@ -1,11 +1,9 @@
 
 #include "../../private/Client.hpp"
 
-static int nextId = 0;
-
 // Constructor -----------------------------------------------------------------
 
-Client::Client() : _fd(-1), _nickname("DEFAULT"), _username("DEFAULT"), _id(++nextId)
+Client::Client(int id) : _fd(-1), _nickname("DEFAULT"), _username("DEFAULT"), _id(id), _event()
 {
 	if (DEBUG)
 		std::cout << "Client : default constructor called.\n";
@@ -47,3 +45,9 @@ Client &	Client::operator=(Client const & rhs)
 
 
 // Functions -------------------------------------------------------------------
+
+void	Client::setEvent(int fd)
+{
+	this->_event.data.fd = fd;
+	this->_event.events = EPOLLIN | EPOLLOUT;
+}

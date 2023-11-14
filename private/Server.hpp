@@ -42,17 +42,17 @@ class Server
 {
 	private:
 		//std::vector<Client*>	_allClients;
-		std::map<int, Client *>	_clientMap;		// map instead of vector for better efficiency
-		std::vector<int>		_allFd;			// _allFd[0] = fd du server, else fd clients
-		int						_epollFd;
-		struct	epoll_event		_epollEvent;
-		int						_IP;			// ???
-		std::string				_nickname;		// length max 9
-		int						_nbClients;
-		std::string				_serverPassword;
-		int						_serverPort;
-		struct	sockaddr_in 	_serverAddr;
-		int						_socket;
+		std::map<int, Client *>				_clientMap;		// map instead of vector for better efficiency
+		std::vector<int>					_allFd;			// _allFd[0] = fd du server, else fd clients
+		int									_epollFd;
+		std::vector<struct	epoll_event>	_eventArray; // events managment for the server (_eventArray[0]) and clients (_eventArray[1] to _eventArray[MAX_CLIENTS])
+		int									_IP;			// ???
+		std::string							_nickname;		// length max 9
+		int									_nbClients;
+		std::string							_serverPassword;
+		int									_serverPort;
+		struct	sockaddr_in 				_serverAddr;
+		int									_socket;
 
 	public:
 		Server();
@@ -82,7 +82,7 @@ class Server
 		void				handleNewRequest(void);
 
 		//Gestion temporaire de tous les messages reçus
-		void				processMessages();
+		void				processMessages(Client *client);
 		//Gestion temporaire du message reçu par un client spécifique
 		void				processMessage(Client *client, const std::string message);
 		/**
