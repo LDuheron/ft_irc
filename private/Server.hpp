@@ -15,12 +15,15 @@
 # include <string.h>
 # include <sys/epoll.h>
 # include <sys/socket.h>
+# include <sys/types.h>
 # include <unistd.h>
 # include <vector>
 # include <system_error>
+# include <map>
 
 # include "Channel.hpp"
 # include "Client.hpp"
+// # include "Message.hpp"
 
 # define DEBUG 0
 # define DEBUG2 1
@@ -38,32 +41,35 @@ class Client;
 class Server
 {
 	private:
-		std::vector<Client*>	_allClients;
+		//std::vector<Client*>	_allClients;
+		std::map<int, Client *>	_clientMap;		// map instead of vector for better efficiency
 		std::vector<int>		_allFd;			// _allFd[0] = fd du server, else fd clients
 		int						_epollFd;
 		struct	epoll_event		_epollEvent;
 		int						_IP;			// ???
 		std::string				_nickname;		// length max 9
 		int						_nbClients;
-		std::string				_password;
-		int						_port;
+		std::string				_serverPassword;
+		int						_serverPort;
 		struct	sockaddr_in 	_serverAddr;
 		int						_socket;
 
 	public:
 		Server();
 		Server(int port, std::string password);
-		Server(Server const & src);
+		// Server(Server const & src);
 		~Server();
 
-		Server &			operator=(Server const & rhs);
+		// Server &			operator=(Server const & rhs);
 
-		int const 			&getIP(void) const;
-		std::string const 	&getNickname(void) const;
-		std::string const 	&getPassword(void) const;
-		int const 			&getPort(void) const;
-		int const 			&getSocket(void) const;
-		std::vector<Client*> const &getAllClients(void) const;
+		int const 					&getIP(void) const;
+		std::string const 			&getNickname(void) const;
+		std::string const 			&getPassword(void) const;
+		int const 					&getPort(void) const;
+		int const 					&getSocket(void) const;
+		// std::vector<Client*> const	&getAllClients(void) const;
+		std::map<int, Client *> const	&getClientMap(void) const;
+
 
 		void				setSocket(int newSocket);
 

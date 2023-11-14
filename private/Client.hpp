@@ -10,6 +10,7 @@ class Client
 		int			_fd;
 		std::string	_nickname;
 		std::string	_username;
+		int			_id;
 		// epollfd ??
 
 	public:
@@ -18,8 +19,9 @@ class Client
 
 		int			getFd(void) const;
 		void		setFd(int fd);
+		int			getId(void) const;
 
-		Client &	operator=(Client const & rhs);
+		Client &operator=(Client const & rhs);
 };
 
 #endif

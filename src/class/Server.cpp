@@ -9,32 +9,32 @@
 
 // Constructor -----------------------------------------------------------------
 
-Server::Server() :
-	_allClients(), _allFd(),
+Server::Server() : //_allClients()
+	_clientMap(), _allFd(),
 	_epollFd(0), _epollEvent(), _IP(0),
-	_nickname("DEFAULT"), _nbClients(0), _password("NULL"),
-	_port(0), _serverAddr(), _socket(0)
+	_nickname("DEFAULT"), _nbClients(0), _serverPassword("NULL"),
+	_serverPort(0), _serverAddr(), _socket(0)
 {
 	if (DEBUG)
 		std::cout << "Server : default constructor called.\n";
 }
 
-Server::Server(int port, std::string password) :
-	_allClients(), _allFd(),
+Server::Server(int port, std::string password) ://_allClients(),
+	_clientMap(), _allFd(),
 	_epollFd(0), _epollEvent(), _IP(0),
-	_nickname("DEFAULT"), _nbClients(0), _password(password),
-	_port(port), _serverAddr(), _socket(0)
+	_nickname("DEFAULT"), _nbClients(0), _serverPassword(password),
+	_serverPort(port), _serverAddr(), _socket(0)
 {
 	if (DEBUG)
 		std::cout << "Server : Param port and password constructor called.\n";
 }
 
-Server::Server(Server const & src)
-{
-	*this = src;
-	if (DEBUG)
-		std::cout << "Server : copy constructor called.\n";
-}
+// Server::Server(Server const & src)
+// {
+// 	*this = src;
+// 	if (DEBUG)
+// 		std::cout << "Server : copy constructor called.\n";
+// }
 
 // Destructor ------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ std::string const &	Server::getNickname(void) const
 
 std::string const &	Server::getPassword(void) const
 {
-	return (this->_password);
+	return (this->_serverPassword);
 }
 
 int const &	Server::getIP(void) const
@@ -63,7 +63,7 @@ int const &	Server::getIP(void) const
 
 int const &	Server::getPort(void) const
 {
-	return (this->_port);
+	return (this->_serverPort);
 }
 
 void	Server::setSocket(int newSocket)
@@ -71,30 +71,35 @@ void	Server::setSocket(int newSocket)
 	this->_socket = newSocket;
 }
 
-std::vector<Client*> const &	Server::getAllClients(void) const
+// std::vector<Client*> const &	Server::getAllClients(void) const
+// {
+// 	return (this->_allClients);
+// }
+
+std::map<int, Client *> const &	Server::getClientMap(void) const
 {
-	return (this->_allClients);
+	return (this->_clientMap);
 }
 
 // Overload --------------------------------------------------------------------
 
-Server &	Server::operator=(Server const & rhs)
-{
-	for (int i = 0; i < (int)rhs._allClients.size(); i++)
-		this->_allClients.push_back(rhs._allClients[i]);
-	for (int i = 0; i < (int)rhs._allFd.size(); i++)
-		this->_allFd.push_back(rhs._allFd[i]);
-	this->_epollFd = rhs._epollFd;
-	this->_epollEvent = rhs._epollEvent;
-	this->_IP = rhs._IP;
-	this->_nickname = rhs._nickname;
-	this->_nbClients = rhs._nbClients;
-	this->_password = rhs._password;
-	this->_port = rhs._port;
-	this->_serverAddr = rhs._serverAddr;
-	this->_socket = rhs._socket;
-	return *this;
-}
+// Server &	Server::operator=(Server const & rhs)
+// {
+// 	for (int i = 0; i < (int)rhs._allClients.size(); i++)
+// 		this->_allClients.push_back(rhs._allClients[i]);
+// 	for (int i = 0; i < (int)rhs._allFd.size(); i++)
+// 		this->_allFd.push_back(rhs._allFd[i]);
+// 	this->_epollFd = rhs._epollFd;
+// 	this->_epollEvent = rhs._epollEvent;
+// 	this->_IP = rhs._IP;
+// 	this->_nickname = rhs._nickname;
+// 	this->_nbClients = rhs._nbClients;
+// 	this->_serverPassword = rhs._serverPassword;
+// 	this->_serverPort = rhs._serverPort;
+// 	this->_serverAddr = rhs._serverAddr;
+// 	this->_socket = rhs._socket;
+// 	return *this;
+// }
 
 std::ostream & operator<<(std::ostream & lhs, Server const & rhs)
 {
@@ -119,7 +124,7 @@ void	Server::init_serverAddr(void)
 {
 	memset(&this->_serverAddr, 0, sizeof(this->_serverAddr));
 	this->_serverAddr.sin_family = AF_INET;
-	this->_serverAddr.sin_port = htons(this->_port);
+	this->_serverAddr.sin_port = htons(this->_serverPort);
 	// this->_serverAddr.sin_addr.s_addr = INADDR_ANY;
 	this->_serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 }
@@ -144,7 +149,7 @@ void	Server::init_server(void)
 	// 	std::cerr << "Error: Failed to configurate fd in O_NONBLOCK mode.\n";
 
 	if (bind(this->_socket, (sockaddr*)&(this->_serverAddr), sizeof(this->_serverAddr)) == FAIL)
-		std::cerr << "Error : Failed to bind to port " << this->_port << ".\n";
+		std::cerr << "Error : Failed to bind to port " << this->_serverPort << ".\n";
 	if (DEBUG)
 		std::cout << "bind : " << this->_socket << std::endl;
 	if (DEBUG)
@@ -173,7 +178,7 @@ void	Server::init_server(void)
 	if (DEBUG)
 	{
 		std::cout << "server socket : " << this->_socket << std::endl;
-		std::cout << "port : " << this->_port << std::endl;
+		std::cout << "port : " << this->_serverPort << std::endl;
 	}
 }
 
@@ -324,22 +329,17 @@ void	Server::processMessages()
 
 void	Server::processMessage(Client *client, const std::string message)
 {
-	std::string ackMessage1 = "ACK 001 :Welcome to the IRC Network";
-	std::string ackMessage2 = "002 :Your host is " + this->_nickname;
-	std::string ackMessage3 = "003 :this server was created today";
-	std::string ackMessage4 = "004" + this->_nickname;
 	if (message.substr(0,6) == "CAP LS")
 	{
 		std::cout << "we there bro" << std::endl;
-		if (send(client->getFd(), ackMessage1.c_str(), ackMessage1.length(), MSG_NOSIGNAL) == -1)
+		if (send(client->getFd(), RPL_WELCOME, , MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getFd(), ackMessage2.c_str(), ackMessage2.length(), MSG_NOSIGNAL) == -1)
+		if (send(client->getFd(), RPL_YOURHOST, 3, MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getFd(), ackMessage3.c_str(), ackMessage3.length(), MSG_NOSIGNAL) == -1)
+		if (send(client->getFd(), RPL_CREATED, 3, MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getFd(), ackMessage4.c_str(), ackMessage4.length(), MSG_NOSIGNAL) == -1)
+		if (send(client->getFd(), TPL_MYINFO, 3, MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-	
 	}
 	if (message.substr(0, 4) == "PING"){
 		std::cout << "PING RECEIVED" << std::endl;
