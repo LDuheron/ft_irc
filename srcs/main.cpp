@@ -1,4 +1,4 @@
-#include "../private/Server.hpp"
+#include "Server/Server.hpp"
 
 ///// generer client via Irssi.org
 // commande pour se connecter a irssi :

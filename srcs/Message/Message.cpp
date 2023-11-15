@@ -1,4 +1,4 @@
-#include "../../private/Message.hpp"
+#include "Message.hpp"
 
 Message::Message()
 {}

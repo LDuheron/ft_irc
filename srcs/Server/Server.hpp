@@ -21,9 +21,9 @@
 # include <system_error>
 # include <map>
 
-# include "Channel.hpp"
-# include "Client.hpp"
+// # include "../Channel/Channel.hpp"
 // # include "Message.hpp"
+# include "../Client/Client.hpp"
 
 # define DEBUG 0
 # define DEBUG2 1
@@ -40,19 +40,18 @@ class Client;
 
 class Server
 {
-	private:
-		//std::vector<Client*>	_allClients;
-		std::map<int, Client *>				_clientMap;		// map instead of vector for better efficiency
-		std::vector<int>					_allFd;			// _allFd[0] = fd du server, else fd clients
-		int									_epollFd;
-		std::vector<struct	epoll_event>	_eventArray; // events managment for the server (_eventArray[0]) and clients (_eventArray[1] to _eventArray[MAX_CLIENTS])
-		int									_IP;			// ???
-		std::string							_nickname;		// length max 9
-		int									_nbClients;
-		std::string							_serverPassword;
-		int									_serverPort;
-		struct	sockaddr_in 				_serverAddr;
-		int									_socket;
+	private: // allFd unnecessary ?
+		std::map<int, Client *>		_clientMap;		// map instead of vector for better efficiency
+		// std::vector<int>			_allFd;			// _allFd[0] = fd du server, else fd clients
+	int								_epollFd;
+		struct epoll_event			_serverEvent; // events managment for the server
+		int							_IP;			// ???
+		std::string					_nickname;		// length max 9
+		int							_nbClients;
+		std::string					_serverPassword;
+		int							_serverPort;
+		struct	sockaddr_in 		_serverAddr;
+		int							_serverSocket;
 
 	public:
 		Server();
@@ -67,7 +66,6 @@ class Server
 		std::string const 			&getPassword(void) const;
 		int const 					&getPort(void) const;
 		int const 					&getSocket(void) const;
-		// std::vector<Client*> const	&getAllClients(void) const;
 		std::map<int, Client *> const	&getClientMap(void) const;
 
 
@@ -82,9 +80,9 @@ class Server
 		void				handleNewRequest(void);
 
 		//Gestion temporaire de tous les messages reçus
-		void				processMessages(Client *client);
+		void				handleClientEvent(Client *client);
 		//Gestion temporaire du message reçu par un client spécifique
-		void				processMessage(Client *client, const std::string message);
+		void				processIncomingData(Client *client, const std::string message);
 		/**
 		Gestion temporaire du ping
 

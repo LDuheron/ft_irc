@@ -3,7 +3,7 @@
 # define MESSAGE_H
 
 // # include <map>
-# include "Server.hpp"
+# include "../Server/Server.hpp"
 
 // https://www.alien.net.au/irc/irc2numerics.html
 

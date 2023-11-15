@@ -2,8 +2,7 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
-# include "Client.hpp"
-# include "Server.hpp"
+# include "../Server/Server.hpp"
 
 class Channel
 {

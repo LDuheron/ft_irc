@@ -3,15 +3,14 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-# include "Server.hpp"
+# include "../Server/Server.hpp"
 
 class Client
 {
 	private:
-		int					_fd;
+		int					_clientSocket;
 		std::string			_nickname;
 		std::string			_username;
-		int					_id;
 		struct epoll_event	_event;
 		// epollfd ??
 
@@ -19,10 +18,11 @@ class Client
 		Client(int id);
 		~Client();
 
-		int			getFd(void) const;
-		void		setFd(int fd);
-		int			getId(void) const;
-		void		setEvent(int fd);
+		int					getSocket(void) const;
+		void				setSocket(int);
+		void				setEvent();
+		// struct epoll_event	getEvent(void) const; do we need it though
+		struct epoll_event	*getEventAddress(void);
 
 		Client &operator=(Client const & rhs);
 };
