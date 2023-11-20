@@ -3,7 +3,13 @@
 # define MESSAGE_H
 
 // # include <map>
+
 # include "../Server/Server.hpp"
+
+class Channel;
+class Command;
+class Server;
+class Client;
 
 // https://www.alien.net.au/irc/irc2numerics.html
 

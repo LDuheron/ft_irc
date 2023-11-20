@@ -21,9 +21,10 @@
 # include <system_error>
 # include <map>
 
-// # include "../Channel/Channel.hpp"
-// # include "Message.hpp"
+# include "../Channel/Channel.hpp"
 # include "../Client/Client.hpp"
+# include "../Command/Command.hpp"
+# include "../Message/Message.hpp"
 
 # define DEBUG 0
 # define DEBUG2 1
@@ -35,16 +36,20 @@
 # define MAX_CLIENTS 10
 # define MAX_MESSAGE_LENGTH 512
 
-
+class Channel;
 class Client;
+class Command;
+class Message;
 
 class Server
 {
 	private: // allFd unnecessary ?
 		std::map<int, Client *>		_clientMap;		// map instead of vector for better efficiency
-		// std::map<std::string, Channel *>	_channels;
+		std::map<std::string, Channel>	_channels;
 		// std::vector<int>			_allFd;			// _allFd[0] = fd du server, else fd clients
-	int								_epollFd;
+		// Command						_cmd;
+
+		int							_epollFd;
 		struct epoll_event			_serverEvent; // events managment for the server
 		int							_IP;			// ???
 		std::string					_nickname;		// length max 9
@@ -53,8 +58,9 @@ class Server
 		int							_serverPort;
 		struct	sockaddr_in 		_serverAddr;
 		int							_serverSocket;
-
+	
 	public:
+			;
 		Server();
 		Server(int port, std::string password);
 		// Server(Server const & src);

@@ -64,7 +64,9 @@ DEPS += -I $(DEPS_DIR)
 #‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾#
 
 HEADER +=	Server.hpp\
-			Client.hpp
+			Client.hpp\
+			Channel.hpp\
+			Command.hpp
 
 vpath %.hpp $(DEPS_DIR)
 

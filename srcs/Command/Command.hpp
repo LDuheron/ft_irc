@@ -3,17 +3,23 @@
 
 # include "../Server/Server.hpp"
 
+class Channel;
+class Server;
+class Message;
+class Client;
+
 class Command
 {
 	private:
 
 	public:
 		Command();
+		Command(Command const & src);
 		~Command();
 
-		Command &			operator=(Command const & rhs);
+		Command &	operator=(Command const & rhs);
 
-		void	join(std::string chanName);
+		static void		join(Client *client, std::string message, std::map<std::string, Channel> _channels);
 
 };
 

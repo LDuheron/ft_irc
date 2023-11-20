@@ -286,8 +286,9 @@ void	Server::processIncomingData(Client *client, const std::string message)
 		std::cout << "PING RECEIVED" << std::endl;
 		handlePing(client->getSocket(), message.substr(5));
 	}
+	else if (message.substr(0, 4) == "JOIN")
+		Command::join(client, message, this->_channels);
 	/*
-	else if (msg.substr(0, 4) == "JOIN")
 	else if (msg.substr(0, 4) == "KICK")
 	else if (msg.substr(0, 6) == "INVITE")
 	else if (msg.substr(0, 5) == "TOPIC")

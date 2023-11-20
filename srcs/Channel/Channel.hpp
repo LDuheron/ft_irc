@@ -2,12 +2,16 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
-# include "../Client/Client.hpp"
 # include "../Server/Server.hpp"
 
+class Channel;
+class Client;
+class Command;
+
 # define REGULAR 0
-# define INVITATION_ONLY 1
-# define PRIVATE 2
+# define LOCAL 1
+// # define INVITATION_ONLY 1
+// # define PRIVATE 2
 
 # define FALSE 0
 # define TRUE 1
@@ -27,7 +31,7 @@ class Channel
 		int							_maxUser;
 		std::string					_password;
 		std::string					_topic; // general description of the channel
-		int							_type; // open, invitation only, private
+		int							_type; // regular #, local &
 
 	// mutable topic ?
 
@@ -72,9 +76,6 @@ important info form doc
 
 - channel name may not contain any spaces " "
 the first client who joins a normal channel is made a channel operator
-
-Channel types 
--> regular channel prefix : #
 
 
 Channel ownership ? 
