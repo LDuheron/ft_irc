@@ -6,10 +6,9 @@
 // Constructor -----------------------------------------------------------------
 
 Channel::Channel() : _banned(), _members(), _operator(), _invited(),
-_maxUser(MAX_USER), _hasPassword(FALSE), _password("NULL"),
+_hasPassword(FALSE), _maxUser(MAX_USER), _password("NULL"),
 _topic("NULL"), _type(REGULAR)
 {
-	(void) _hasPassword;
 	(void) _type;
 	if (DEBUG)
 		std::cout << "Channel " << this->_topic << " default constructor called\n";
@@ -30,6 +29,16 @@ Channel::~Channel()
 }
 
 // Accessors -------------------------------------------------------------------
+
+// const std::string &	Channel::getPassword(void)
+// {
+// 	return (this->_password);
+// }
+
+void	Channel::setPassword(std::string const &password)
+{
+	this->_password = password;
+}
 
 const std::string &	Channel::getTopic(void)
 {
@@ -65,20 +74,19 @@ void	Channel::setType(int const &type)
 
 Channel &	Channel::operator=(Channel const & rhs)
 {
-	(void)rhs;
-	// for (int i = 0; i < (int)rhs._admin.size(); i++)
-	// 	this->_admin.push_back(rhs._admin[i]);
-	// for (int i = 0; i < (int)rhs._banned.size(); i++)
-	// 	this->_banned.push_back(rhs._banned[i]);
-	// for (int i = 0; i < (int)rhs._members.size(); i++)
-	// 	this->_members.push_back(rhs._members[i]);
-	// this->_topic = rhs._topic;
-	// this->_nbUsers = rhs._nbUsers;
-	// for (int i = 0; i < (int)rhs._operators.size(); i++)
-	// 	this->_operators.push_back(rhs._operators[i]);
-	// this->_password = rhs._password;
-	// this->_topic = rhs._topic;
-	// this->_type = rhs._type;
+	for (int i = 0; i < (int)rhs._banned.size(); i++)
+		this->_banned.push_back(rhs._banned[i]);
+	for (int i = 0; i < (int)rhs._members.size(); i++)
+		this->_members.push_back(rhs._members[i]);
+	for (int i = 0; i < (int)rhs._operator.size(); i++)
+		this->_operator.push_back(rhs._operator[i]);
+	for (int i = 0; i < (int)rhs._invited.size(); i++)
+		this->_invited.push_back(rhs._invited[i]);
+	this->_hasPassword = rhs._hasPassword;
+	this->_maxUser = rhs._maxUser;
+	this->_password = rhs._password;
+	this->_topic = rhs._topic;
+	this->_type = rhs._type;
 	return (*this);
 }
 

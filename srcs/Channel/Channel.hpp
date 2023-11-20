@@ -22,13 +22,14 @@ class Channel
 		std::vector<Client *>		_operator;
 		std::vector<Client *>		_invited;
 
-		int							_maxUser;
 		bool						_hasPassword;
-		std::string					_password;
 
-	// mutable topic ?
+		int							_maxUser;
+		std::string					_password;
 		std::string					_topic; // general description of the channel
 		int							_type; // open, invitation only, private
+
+	// mutable topic ?
 
 	public:
 		Channel();
@@ -37,6 +38,9 @@ class Channel
 
 		const int 			&getMaxUser(void);
 		void				setMaxUser(int const &maxUser);
+
+		// const std::string	&getPassword(void);
+		void				setPassword(std::string const &password);
 
 		const std::string	&getTopic(void);
 		void				setTopic(std::string const &name);
@@ -62,7 +66,6 @@ class Channel
 		int					isInvited(Client *client);
 
 };
-
 
 /*
 important info form doc
