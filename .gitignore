@@ -1,3 +1,3 @@
 ircserv
-build/
+objs/
 Makefile.old

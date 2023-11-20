@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <iostream>
 #include <netinet/in.h>
+#include <string>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <system_error>
@@ -208,12 +209,12 @@ void	Server::loop(void)
 	if (fd_ready == FAIL)
 		std::cerr << "Error : Epoll_wait() failed.\n";
 
-	std::cout << "fd_ready : " << fd_ready << std::endl;
+	// std::cout << "fd_ready : " << fd_ready << std::endl;
 
 	for (int i = 0; i < fd_ready; ++i)
 	{
 		int currentSocket = events[i].data.fd;
-		std::cout << "currentSocket : " << currentSocket << std::endl;
+		// std::cout << "currentSocket : " << currentSocket << std::endl;
 		if (currentSocket == this->_serverSocket)
 			handleNewClient();
 		else
@@ -259,16 +260,27 @@ void	Server::processIncomingData(Client *client, const std::string message)
 	/*
 		Switch statement instead of awful if else (with function pointer beacuse it's cool)
 	*/
+	std::string capLs = ":ircserv CAP * LS :\n";
+	std::string welcome1 = ":DEFAULT 001 lletourn :Welcome to the Internet Relay Network lletourn!user@host\n";
+	std::string welcome2 = ":DEFAULT 002 lletourn :Your host is server_name, running version ircd_version\n";
+	std::string welcome3 = ":DEFAULT 003 lletourn :This server was created 2023/11/20\n";
+	std::string welcome4 = ":DEFAULT 004 lletourn server_name ircd_version user_modes chan_modes\n";
 	if (message.substr(0,6) == "CAP LS")
 	{
-		if (send(client->getSocket(), "001", 3, MSG_NOSIGNAL) == -1)
+		if ((send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL)) == -1)
+			std::cerr << "Error : Failed to send CAP LS answer.\n";
+	}
+	else if (message.substr(0,7) == "CAP END")
+	{
+		if ((send(client->getSocket(), welcome1.c_str(), welcome1.length(), MSG_NOSIGNAL)) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getSocket(), "002", 3, MSG_NOSIGNAL) == -1)
+		if (send(client->getSocket(), welcome2.c_str(), welcome2.length(), MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getSocket(), "003", 3, MSG_NOSIGNAL) == -1)
+		if (send(client->getSocket(), welcome3.c_str(), welcome3.length(), MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		if (send(client->getSocket(), "004", 3, MSG_NOSIGNAL) == -1)
+		if (send(client->getSocket(), welcome4.c_str(), welcome4.length(), MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
+		std::cout << "USER RECEIVED : " << client->getSocket() << std::endl;
 	}
 	if (message.substr(0, 4) == "PING"){
 		std::cout << "PING RECEIVED" << std::endl;
