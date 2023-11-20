@@ -107,12 +107,13 @@ void	Server::init_server(void)
 
 	// Create socket
 	setSocket(socket(AF_INET, SOCK_STREAM, 0));
-	std::cout << "===== server socket : " << this->_serverSocket << " =====" << std::endl;
-	if(DEBUG2)
+	if (DEBUG2)
+	{
+		std::cout << "===== server socket : " << this->_serverSocket << " =====" << std::endl;
 		perror("socket:");
+	}
 	if (this->_serverSocket == FAIL)
 		std::cerr << "Error : Failed to create socket.\n";
-
 
 	//epoll call
 	this->_epollFd = epoll_create1(0);
@@ -136,7 +137,6 @@ void	Server::init_server(void)
 		perror("listen:");
 	if (DEBUG2)
 		std::cout << "Server initialisation successful.\n";
-	
 
 	if (DEBUG)
 	{
@@ -167,9 +167,11 @@ void	Server::handleNewClient(void)
 		close(clientSocket);
 		return ;
 	}
-	std::cout << "===== Client socket : " << clientSocket << " =====" << std::endl;
 	if (DEBUG2)
+	{
+		std::cout << "===== Client socket : " << clientSocket << " =====" << std::endl;
 		perror ("accept:");
+	}
 	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == FAIL)
 	{
 		std::cerr << "Error: Failed to configurate client socket in O_NONBLOCK mode.\n";
@@ -260,11 +262,11 @@ void	Server::processIncomingData(Client *client, const std::string message)
 	/*
 		Switch statement instead of awful if else (with function pointer beacuse it's cool)
 	*/
-	std::string capLs = ":ircserv CAP * LS :\n";
+	std::string capLs = ":DEFAULT CAP * LS :none cause i dont care\n";
 	std::string welcome1 = ":DEFAULT 001 lletourn :Welcome to the Internet Relay Network lletourn!user@host\n";
-	std::string welcome2 = ":DEFAULT 002 lletourn :Your host is server_name, running version ircd_version\n";
+	std::string welcome2 = ":DEFAULT 002 lletourn :Your host is DEFAULT, running version 0.1\n";
 	std::string welcome3 = ":DEFAULT 003 lletourn :This server was created 2023/11/20\n";
-	std::string welcome4 = ":DEFAULT 004 lletourn server_name ircd_version user_modes chan_modes\n";
+	std::string welcome4 = ":DEFAULT 004 lletourn DEFAULT ircd_version user_modes chan_modes\n";
 	if (message.substr(0,6) == "CAP LS")
 	{
 		if ((send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL)) == -1)
@@ -280,7 +282,7 @@ void	Server::processIncomingData(Client *client, const std::string message)
 			std::cerr << "Error : Failed to send ack.\n";
 		if (send(client->getSocket(), welcome4.c_str(), welcome4.length(), MSG_NOSIGNAL) == -1)
 			std::cerr << "Error : Failed to send ack.\n";
-		std::cout << "USER RECEIVED : " << client->getSocket() << std::endl;
+		// std::cout << "USER RECEIVED : " << client->getSocket() << std::endl;
 	}
 	if (message.substr(0, 4) == "PING"){
 		std::cout << "PING RECEIVED" << std::endl;

@@ -26,7 +26,7 @@
 # include "../Client/Client.hpp"
 
 # define DEBUG 0
-# define DEBUG2 1
+# define DEBUG2 0
 
 # define FAIL -1
 # define SUCCESS 0
