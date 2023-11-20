@@ -75,7 +75,8 @@ vpath %.hpp $(DEPS_DIR)
 SRCS_DIR += srcs\
 			srcs/Server\
 			srcs/Channel\
-			srcs/Client
+			srcs/Client\
+			srcs/Command
 
 PATH_SRCS = $(SRCS_DIR)
 
@@ -86,7 +87,8 @@ PATH_SRCS = $(SRCS_DIR)
 SRCS +=	main.cpp\
 		Server.cpp\
 		Channel.cpp\
-		Client.cpp
+		Client.cpp\
+		Command.cpp
 #______________________________________________________________________________#
 ############################### Attribution ####################################
 #‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾#

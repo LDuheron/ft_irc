@@ -7,3 +7,4 @@ Specified in subject :
 Necessary :
 - Join
 - Ping
+- PRIVMSG

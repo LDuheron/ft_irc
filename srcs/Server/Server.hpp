@@ -42,6 +42,7 @@ class Server
 {
 	private: // allFd unnecessary ?
 		std::map<int, Client *>		_clientMap;		// map instead of vector for better efficiency
+		// std::map<std::string, Channel *>	_channels;
 		// std::vector<int>			_allFd;			// _allFd[0] = fd du server, else fd clients
 	int								_epollFd;
 		struct epoll_event			_serverEvent; // events managment for the server

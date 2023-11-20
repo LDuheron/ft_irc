@@ -9,7 +9,6 @@ Channel::Channel() : _banned(), _members(), _operator(), _invited(),
 _hasPassword(FALSE), _maxUser(MAX_USER), _password("NULL"),
 _topic("NULL"), _type(REGULAR)
 {
-	(void) _type;
 	if (DEBUG)
 		std::cout << "Channel " << this->_topic << " default constructor called\n";
 }
