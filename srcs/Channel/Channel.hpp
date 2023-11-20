@@ -35,15 +35,31 @@ class Channel
 		Channel(Channel const & src);
 		~Channel();
 
-		const std::string	&getTopic(void);
-		void				setTopic(std::string const &name);
 		const int 			&getMaxUser(void);
 		void				setMaxUser(int const &maxUser);
 
+		const std::string	&getTopic(void);
+		void				setTopic(std::string const &name);
+
+		const int 			&getType(void);
+		void				setType(int const &type);
+
 		Channel &			operator=(Channel const & rhs);
+
+		void				banMember(Client *client);
+		void				unbanMember(Client *client);
 
 		void				addMember(Client *client);
 		void				removeMember(Client *client);
+
+		void				addOperator(Client *client);
+		void				removeOperator(Client *client);
+
+		void				inviteMember(Client *client);
+		void				uninviteMember(Client *client);
+
+		int					isOperator(Client *client);
+		int					isInvited(Client *client);
 
 };
 
