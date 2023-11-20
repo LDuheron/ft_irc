@@ -23,13 +23,14 @@ int main(int argc, char **argv)
 	if (argc != 3)
 	{
 		std::cerr << "Error: Usage is ./ircserv <port> <password>";
-		return (ERROR);
+		return (EXIT_FAILURE);
 	}
 	Server	server(atoi(argv[1]), argv[2]);
 	signal(SIGINT, signalHandler);
 
 	// try catch  ?
 	server.init_server();
+	std::cout << "Listening on port " << server.getPort() << ".\n";
 	while (1)
 	{
 		// for (size_t i = 0; i < server.getAllClients().size(); i++)
@@ -39,5 +40,5 @@ int main(int argc, char **argv)
 		// }
 	}
 	// close(server._epollFd);
-	return (SUCCESS);
+	return (EXIT_SUCCESS);
 }
