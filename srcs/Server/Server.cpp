@@ -282,23 +282,41 @@ void	Server::processIncomingData(Client *client, const std::string message)
 			std::cerr << "Error : Failed to send ack.\n";
 		std::cout << "USER RECEIVED : " << client->getSocket() << std::endl;
 	}
+
+	int cmdLength = 0;
+	for (int i = 0; i < (int)message.size(); i++)
+	{
+		if (message[i] == ' ')
+			break;
+		cmdLength += 1;
+	}
+
 	if (message.substr(0, 4) == "PING"){
 		std::cout << "PING RECEIVED" << std::endl;
-		handlePing(client->getSocket(), message.substr(5));
+		Command::handlePing(client->getSocket(), message.substr(5));
 	}
 	else if (message.substr(0, 4) == "JOIN")
-		Command::join(client, message, this->_channels);
-	/*
-	else if (msg.substr(0, 4) == "KICK")
-	else if (msg.substr(0, 6) == "INVITE")
-	else if (msg.substr(0, 5) == "TOPIC")
-	else if (msg.substr(0, 4) == "MODE")
-	*/
-}
+		Command::handleJoin(client, message, this->_channels);
+	else if (message.substr(0, cmdLength) == "PRIVMSG")
+		Command::handlePrivmsg();
 
-void	Server::handlePing(int clientSocket, const std::string &pingData)
-{
-	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
-	if (send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0) == FAIL)
-		std::cerr << "Error : Failed to send pong.\n";
+	// else if (message.substr(0, message.size()) == "KICK")
+	// char buffer[MAX_MESSAGE_LENGTH];
+	// int	bytesReceived = recv(client->getSocket(), buffer, MAX_MESSAGE_LENGTH, 0);
+	// if (bytesReceived > 0)
+	// 	std::cout << "bytes received : " << buffer << "\n";
+	/*else if (msg.substr(0, 6) == "INVITE")
+	else if (msg.substr(0, 5) == "TOPIC")
+	else if (msg.substr(0, 4) == "MODE")	
+	
+	/* tentative de remplacement des if
+	void (Command::*ptr[])(void) = {&Command::handleJoin, &Command::handlePing};
+	std::string allCommands[] = {"JOIN", "PING"}; // , "KICK", "INVITE", 
+	for (int i = 0; i < 2; i++)
+	{
+		if (message.substr(0, cmdLength) == allCommands[i])
+		(this->*ptr[i])();
+	}
+	*/
+
 }

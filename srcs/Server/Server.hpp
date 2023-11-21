@@ -90,12 +90,7 @@ class Server
 		void				handleClientEvent(Client *client);
 		//Gestion temporaire du message reçu par un client spécifique
 		void				processIncomingData(Client *client, const std::string message);
-		/**
-		Gestion temporaire du ping
 
-		@param clientSocket : socket du client qui a envoyé le ping
-		*/
-		void				handlePing(int clientSocket, const std::string &pingData);
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const & rhs);

@@ -35,10 +35,11 @@ Command &	Command::operator=(Command const & rhs)
 
 // Functions -------------------------------------------------------------------
 
-void	Command::join(Client *client, std::string message, std::map<std::string, Channel> _channels)
+void	Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
 {
 	std::string chanName = message.substr(6, message.size());
-	std::cout << "Channel name " << chanName << "\n";
+	std::string command = "JOIN " + chanName + "\r\n";
+	// std::cout << "Channel name " << chanName << "\n";
 
     std::map<std::string, Channel>::iterator it = _channels.find(chanName);
     if (it != _channels.end())
@@ -55,5 +56,18 @@ void	Command::join(Client *client, std::string message, std::map<std::string, Ch
 		newChannel.addMember(client);
 		newChannel.addOperator(client);
 		_channels.insert(std::make_pair(chanName, newChannel));
+		send(client->getSocket(), command.c_str(), command.size(), 0);
     }
+}
+
+void	Command::handlePing(int clientSocket, const std::string &pingData)
+{
+	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
+	if (send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0) == FAIL)
+		std::cerr << "Error : Failed to send pong.\n";
+}
+
+static void	handlePrivmsg()
+{
+	send("PRIVMSG" + _channels.first() + " :" + )
 }
