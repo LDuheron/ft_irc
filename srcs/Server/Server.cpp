@@ -13,32 +13,32 @@
 // Constructor -----------------------------------------------------------------
 
 Server::Server() :
-	_clientMap(),
-	_epollSocket(0),
-	_serverEvent(),
 	_IP(0),
-	_nickname("DEFAULT"),
+	_epollSocket(0),
 	_nbClients(0),
-	_serverPassword("NULL"),
 	_serverPort(0),
+	_serverSocket(0),
+	_serverName("DEFAULT"),
+	_serverPassword("NULL"),
+	_serverEvent(),
 	_serverAddr(),
-	_serverSocket(0)
+	_clientMap()
 {
 	if (DEBUG)
 		std::cout << "Server : default constructor called.\n";
 }
 
 Server::Server(int port, std::string password) :
-	_clientMap(),
-	_epollSocket(0),
-	_serverEvent(),
 	_IP(0),
-	_nickname("DEFAULT"),
+	_epollSocket(0),
 	_nbClients(0),
-	_serverPassword(password),
 	_serverPort(port),
+	_serverSocket(0),
+	_serverName("DEFAULT"),
+	_serverPassword(password),
+	_serverEvent(),
 	_serverAddr(),
-	_serverSocket(0)
+	_clientMap()
 {}
 
 // Destructor ------------------------------------------------------------------
@@ -51,35 +51,17 @@ Server::~Server()
 
 // Accessors -------------------------------------------------------------------
 
-std::string const &	Server::getNickname(void) const
-{
-	return (this->_nickname);
-}
+std::string const				&Server::getNickname(void) const { return (this->_serverName); }
 
-std::string const &	Server::getPassword(void) const
-{
-	return (this->_serverPassword);
-}
+std::string const				&Server::getPassword(void) const { return (this->_serverPassword); }
 
-int const &	Server::getIP(void) const
-{
-	return (this->_IP);
-}
+int const						&Server::getIP(void) const { return (this->_IP); }
 
-int const &	Server::getPort(void) const
-{
-	return (this->_serverPort);
-}
+int const						&Server::getPort(void) const { return (this->_serverPort); }
 
-void	Server::setSocket(int newSocket)
-{
-	this->_serverSocket = newSocket;
-}
+void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
-std::map<int, Client *> const &	Server::getClientMap(void) const
-{
-	return (this->_clientMap);
-}
+std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
 
 // Functions - init data -------------------------------------------------------------------
 
@@ -91,7 +73,7 @@ std::map<int, Client *> const &	Server::getClientMap(void) const
 // sin_port member defines the TCP/IP port number for the socket address.
 
 
-void	Server::init_serverAddr(void)
+void		Server::init_serverAddr(void)
 {
 	memset(&this->_serverAddr, 0, sizeof(this->_serverAddr));
 	this->_serverAddr.sin_family = AF_INET;
@@ -99,7 +81,7 @@ void	Server::init_serverAddr(void)
 	this->_serverAddr.sin_addr.s_addr = INADDR_ANY;
 }
 
-static int createSocket(void)
+static int	createSocket(void)
 {
 	int newSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (newSocket == -1)
@@ -110,7 +92,7 @@ static int createSocket(void)
 	return (newSocket);
 }
 
-static int createEpoll(void)
+static int	createEpoll(void)
 {
 	int newEpoll = epoll_create1(0);
 	if (newEpoll == -1)
@@ -148,7 +130,7 @@ static void	listenSocket(int socket)
 	}
 }
 
-void	Server::init_server(void)
+void		Server::init_server(void)
 {
 	init_serverAddr();
 
@@ -177,7 +159,7 @@ static int	acceptNewClient(int serverSocket, struct sockaddr_in serverAddr)
 	int			clientSocket;
 	socklen_t	addrLen = sizeof(serverAddr);
 
-	if ((clientSocket = accept(serverSocket, (struct sockaddr*)&(serverAddr), &addrLen)) == FAIL)
+	if ((clientSocket = accept(serverSocket, (struct sockaddr*)&(serverAddr), &addrLen)) == -1)
 	{
 		std::perror("Error : Failed to accept client connection.\n");
 		close(clientSocket);
@@ -188,7 +170,7 @@ static int	acceptNewClient(int serverSocket, struct sockaddr_in serverAddr)
 
 static void	controlSocket(int socket, int operation)
 {
-	if (fcntl(socket, F_SETFL, operation) == FAIL)
+	if (fcntl(socket, F_SETFL, operation) == -1)
 	{
 		std::perror("Error: Failed to control socket");
 		close(socket);
@@ -210,7 +192,7 @@ static Client	*storeClient(int clientSocket, std::map<int, Client *> &clientMap,
 	return newClient;
 }
 
-void	Server::handleNewClient(void)
+void		Server::handleNewClient(void)
 {
 	int			clientSocket;
 
@@ -228,7 +210,7 @@ void	Server::handleNewClient(void)
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
 }
 
-void	Server::loop(void)
+void		Server::loop(void)
 {
 	int					fd_ready;
 	struct epoll_event	events[MAX_CLIENTS];
@@ -246,7 +228,7 @@ void	Server::loop(void)
 	}
 }
 
-void	Server::removeClient(Client *client)
+void		Server::removeClient(Client *client)
 {
 	epoll_ctl(this->_epollSocket, EPOLL_CTL_DEL, client->getSocket(), client->getEventAddress());
 	this->_clientMap.erase(client->getSocket()); // make fct removeClient
@@ -254,7 +236,7 @@ void	Server::removeClient(Client *client)
 	this->_nbClients--;
 }
 
-void	Server::handleClientError(Client *client)
+void		Server::handleClientError(Client *client)
 {
 	if (errno == EAGAIN || errno == EWOULDBLOCK) // no data currently available, doesn't necessarily mean an error occured
 		return;
@@ -265,13 +247,13 @@ void	Server::handleClientError(Client *client)
 	}
 }
 
-void	Server::handleClientDisconnection(Client *client)
+void		Server::handleClientDisconnection(Client *client)
 {
 	std::cout << "Client disconnected: " << client->getSocket() << std::endl;
 	removeClient(client);
 }
 
-void	Server::handleClientEvent(Client *client)
+void		Server::handleClientEvent(Client *client)
 {
 	char	buffer[MAX_MESSAGE_LENGTH];
 	int		bytesRead;
@@ -289,34 +271,47 @@ void	Server::handleClientEvent(Client *client)
 	}
 }
 
-void	Server::processIncomingData(Client *client, const std::string message)
+static void	sendCAPLs(Client *client)
 {
-	/*
-		Switch statement instead of awful if else (with function pointer beacuse it's cool)
-	*/
-	std::string capLs = ":DEFAULT CAP * LS :none cause i dont care\n";
+	std::string capLs = ":DEFAULT CAP * LS :none\n";
+	if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
+		std::perror("Error : Failed to send CAP LS\n");
+}
+
+static void	sendRPLMessages(Client *client)
+{
 	std::string welcome1 = ":DEFAULT 001 lletourn :Welcome to the Internet Relay Network lletourn!user@host\n";
 	std::string welcome2 = ":DEFAULT 002 lletourn :Your host is DEFAULT, running version 0.1\n";
 	std::string welcome3 = ":DEFAULT 003 lletourn :This server was created 2023/11/20\n";
 	std::string welcome4 = ":DEFAULT 004 lletourn DEFAULT ircd_version user_modes chan_modes\n";
-	std::string pass = "Password required :\n";
+
+		if (send(client->getSocket(), welcome1.c_str(), welcome1.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send 001.\n");
+		if (send(client->getSocket(), welcome2.c_str(), welcome2.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send 002.\n");
+		if (send(client->getSocket(), welcome3.c_str(), welcome3.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send 003.\n");
+		if (send(client->getSocket(), welcome4.c_str(), welcome4.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send 004.\n");
+}
+
+static void	sendPASSMessage(Client *client)
+{
+	std::string pass = "\n\nPassword required. Try /quote PASS <password>\n";
+	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
+		std::perror("Error : Failed to send PASS.\n");
+}
+void		Server::processIncomingData(Client *client, const std::string message)
+{
+	/*
+		Switch statement instead of awful if else (with function pointer beacuse it's cool)
+	*/
 	if (message.substr(0,6) == "CAP LS")
-	{
-		if ((send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL)) == -1)
-			std::cerr << "Error : Failed to send CAP LS answer.\n";
-	}
+		sendCAPLs(client);
 	else if (message.substr(0,7) == "CAP END")
 	{
-		if (send(client->getSocket(), welcome1.c_str(), welcome1.length(), MSG_NOSIGNAL) == -1)
-			std::cerr << "Error : Failed to send 001.\n";
-		if (send(client->getSocket(), welcome2.c_str(), welcome2.length(), MSG_NOSIGNAL) == -1)
-			std::cerr << "Error : Failed to send 002.\n";
-		if (send(client->getSocket(), welcome3.c_str(), welcome3.length(), MSG_NOSIGNAL) == -1)
-			std::cerr << "Error : Failed to send 003.\n";
-		if (send(client->getSocket(), welcome4.c_str(), welcome4.length(), MSG_NOSIGNAL) == -1)
-			std::cerr << "Error : Failed to send 004.\n";
-		
-		// std::cout << "USER RECEED : " << client->getSocket() << std::endl;
+		sendRPLMessages(client);
+		sendPASSMessage(client);
 	}
 	if (message.substr(0, 4) == "PING"){
 		std::cout << "PING RECEIVED" << std::endl;
@@ -331,9 +326,9 @@ void	Server::processIncomingData(Client *client, const std::string message)
 	*/
 }
 
-void	Server::handlePing(int clientSocket, const std::string &pingData)
+void		Server::handlePing(int clientSocket, const std::string &pingData)
 {
 	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
-	if (send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0) == FAIL)
+	if (send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0) == -1)
 		std::cerr << "Error : Failed to send pong.\n";
 }

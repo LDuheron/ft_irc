@@ -4,7 +4,13 @@
 
 // Constructor -----------------------------------------------------------------
 
-Client::Client(int socket) : _clientSocket(socket), _nickname("DEFAULT"), _username("DEFAULT"), _event(), _nickCheck(false), _passCheck(false)
+Client::Client(int socket) :
+	_clientSocket(socket),
+	_nickname("DEFAULT"),
+	_username("DEFAULT"),
+	_nickCheck(false),
+	_passCheck(false),
+	_event()
 {
 	setEvent();
 	if (DEBUG)
@@ -20,56 +26,27 @@ Client::~Client(void)
 }
 // Accessors -------------------------------------------------------------------
 
-void				Client::setSocket(int fd)
-{
-	this->_clientSocket = fd;
-}
+void				Client::setSocket(int fd) { this->_clientSocket = fd; }
 
-int					Client::getSocket(void) const
-{
-	return (this->_clientSocket);
-}
+int					Client::getSocket(void) const { return (this->_clientSocket); }
 
-const std::string	&Client::getNickname(void) const
-{
-	return (this->_nickname);
-}
+const std::string	&Client::getNickname(void) const { return (this->_nickname); }
 
-void 				Client::setNickname(const std::string & nickname)
-{
-	this->_nickname = nickname;
-}
+void 				Client::setNickname(const std::string & nickname) { this->_nickname = nickname; }
 
-bool				Client::getNickCheck(void) const
-{
-	return (this->_nickCheck);
-}
+bool				Client::getNickCheck(void) const { return (this->_nickCheck); }
 
-void				Client::setNickCheck(void)
-{
-	this->_nickCheck = true;
-}
+void				Client::setNickCheck(void) { this->_nickCheck = true; }
 
-bool				Client::getPassCheck(void) const
-{
-	return (this->_passCheck);
-}
+bool				Client::getPassCheck(void) const { return (this->_passCheck); }
 
-void				Client::setPassCheck(void)
-{
-	this->_passCheck = true;
-}
+void				Client::setPassCheck(void) { this->_passCheck = true; }
 
 void				Client::setEvent()
 {
 	this->_event.events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR; // EPOLLHUP : hung up, EPOLLERR : error on the socket
 	this->_event.data.fd = this->_clientSocket;
 }
-
-// struct epoll_event	Client::getEvent(void) const
-// {
-// 	return (this->_event);
-// }
 
 struct epoll_event	*Client::getEventAddress(void)
 {
