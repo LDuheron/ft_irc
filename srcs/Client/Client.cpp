@@ -4,7 +4,7 @@
 
 // Constructor -----------------------------------------------------------------
 
-Client::Client(int socket) : _clientSocket(socket), _nickname("DEFAULT"), _username("DEFAULT"), _event()
+Client::Client(int socket) : _clientSocket(socket), _nickname("DEFAULT"), _username("DEFAULT"), _event(), _nickCheck(false), _passCheck(false)
 {
 	setEvent();
 	if (DEBUG)
@@ -28,6 +28,36 @@ void				Client::setSocket(int fd)
 int					Client::getSocket(void) const
 {
 	return (this->_clientSocket);
+}
+
+const std::string	&Client::getNickname(void) const
+{
+	return (this->_nickname);
+}
+
+void 				Client::setNickname(const std::string & nickname)
+{
+	this->_nickname = nickname;
+}
+
+bool				Client::getNickCheck(void) const
+{
+	return (this->_nickCheck);
+}
+
+void				Client::setNickCheck(void)
+{
+	this->_nickCheck = true;
+}
+
+bool				Client::getPassCheck(void) const
+{
+	return (this->_passCheck);
+}
+
+void				Client::setPassCheck(void)
+{
+	this->_passCheck = true;
 }
 
 void				Client::setEvent()

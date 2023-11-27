@@ -3,26 +3,18 @@
 # define SERVER_HPP
 
 # include <arpa/inet.h>
-# include <csignal>
 # include <fcntl.h>
-# include <fstream>
 # include <iostream>
-# include <limits.h>
 # include <netinet/in.h>
-# include <stdlib.h>
-# include <stdio.h>
 # include <string>
-# include <string.h>
 # include <sys/epoll.h>
 # include <sys/socket.h>
 # include <sys/types.h>
 # include <unistd.h>
-# include <vector>
-# include <system_error>
 # include <map>
+# include <cstring>
+# include <signal.h>
 
-// # include "../Channel/Channel.hpp"
-// # include "Message.hpp"
 # include "../Client/Client.hpp"
 
 # define DEBUG 0
@@ -40,13 +32,12 @@ class Client;
 
 class Server
 {
-	private: // allFd unnecessary ?
+	private:
 		std::map<int, Client *>		_clientMap;		// map instead of vector for better efficiency
-		// std::vector<int>			_allFd;			// _allFd[0] = fd du server, else fd clients
-	int								_epollFd;
+		int							_epollSocket;
 		struct epoll_event			_serverEvent; // events managment for the server
-		int							_IP;			// ???
-		std::string					_nickname;		// length max 9
+		int							_IP;
+		std::string					_nickname;
 		int							_nbClients;
 		std::string					_serverPassword;
 		int							_serverPort;
@@ -56,41 +47,39 @@ class Server
 	public:
 		Server();
 		Server(int port, std::string password);
-		// Server(Server const & src);
 		~Server();
 
-		// Server &			operator=(Server const & rhs);
-
-		int const 					&getIP(void) const;
-		std::string const 			&getNickname(void) const;
-		std::string const 			&getPassword(void) const;
-		int const 					&getPort(void) const;
-		int const 					&getSocket(void) const;
+		int const 						&getIP(void) const;
+		std::string const 				&getNickname(void) const;
+		std::string const 				&getPassword(void) const;
+		int const 						&getPort(void) const;
+		int const 						&getSocket(void) const;
 		std::map<int, Client *> const	&getClientMap(void) const;
 
 
-		void				setSocket(int newSocket);
+		void				setSocket(int);
 
 		void				init_serverAddr(void);
 		void				init_server(void);
 		void				loop(void);
 
-		void				check_inactivity(void);
 		void				handleNewClient(void);
-		void				handleNewRequest(void);
 
-		//Gestion temporaire de tous les messages reçus
-		void				handleClientEvent(Client *client);
-		//Gestion temporaire du message reçu par un client spécifique
-		void				processIncomingData(Client *client, const std::string message);
+		void				removeClient(Client *);
+		void				handleClientError(Client *);
+		void				handleClientDisconnection(Client *);
+		//Gestion des messages reçus
+		void				handleClientEvent(Client *);
+		//Gestion du message reçu par un client spécifique
+		void				processIncomingData(Client *, const std::string);
 		/**
 		Gestion temporaire du ping
 
 		@param clientSocket : socket du client qui a envoyé le ping
 		*/
-		void				handlePing(int clientSocket, const std::string &pingData);
+		void				handlePing(int, const std::string &);
 };
 
-std::ostream & operator<<(std::ostream & lhs, Server const & rhs);
+std::ostream & operator<<(std::ostream & lhs, Server const &);
 
 #endif

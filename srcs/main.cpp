@@ -11,12 +11,9 @@
 void	signalHandler(int signum)
 {
 	(void) signum;
-	std::cout << "Exiting server.\n";
+	std::cout << "\nExiting server.\n";
 	exit(SIGINT);
-	// close fd ?
 }
-
-// CLIENT OPERATOR ????????????????
 
 int main(int argc, char **argv)
 {
@@ -28,15 +25,10 @@ int main(int argc, char **argv)
 	Server	server(atoi(argv[1]), argv[2]);
 	signal(SIGINT, signalHandler);
 
-	// try catch  ?
 	server.init_server();
 	while (1)
 	{
-		// for (size_t i = 0; i < server.getAllClients().size(); i++)
-		// {
 		server.loop();
-		// server.processMessages();
-		// }
 	}
 	// close(server._epollFd);
 	return (SUCCESS);
