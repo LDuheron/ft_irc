@@ -1,14 +1,6 @@
 #include "../Server/Server.hpp"
-#include <asm-generic/errno.h>
-#include <cstddef>
-#include <fcntl.h>
-#include <iostream>
-#include <netinet/in.h>
-#include <string>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <system_error>
-#include <utility>
+
+using std::string;
 
 // Constructor -----------------------------------------------------------------
 
@@ -266,9 +258,29 @@ void		Server::handleClientEvent(Client *client)
 	else
 	{
 		buffer[bytesRead] = '\0';
-		std::cout << "===== incoming message : =====\n" << buffer << std::endl;
 		processIncomingData(client, buffer);
 	}
+}
+
+static std::vector<std::string> parseCommand(const std::string &command)
+{
+	std::vector<std::string>	parsedCommand;
+	std::istringstream			iss(command);
+	std::string					token;
+
+	while (iss >> token)
+		parsedCommand.push_back(token);
+	if (parsedCommand[0] == "CAP")
+	{
+		parsedCommand[0] += " " + parsedCommand[1];
+		parsedCommand.erase(parsedCommand.begin() + 1);
+	}
+
+	std::cout << "===== parsed command : =====\n";
+	for (std::vector<std::string>::iterator it = parsedCommand.begin(); it != parsedCommand.end(); ++it)
+		std::cout << *it << "\n";
+	std::cout << "============================\n";
+	return (parsedCommand);
 }
 
 static void	sendCAPLs(Client *client)
@@ -297,25 +309,41 @@ static void	sendRPLMessages(Client *client)
 
 static void	sendPASSMessage(Client *client)
 {
-	std::string pass = "\n\nPassword required. Try /quote PASS <password>\n";
+	std::string pass = "Password required. Try /quote PASS <password>\r\n\r\n";
 	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
-		std::perror("Error : Failed to send PASS.\n");
+		std::perror("Error : Failed to send PASS message\n");
 }
+
+static void checkPassword(Client *client, const std::string &password, const std::string &givenPassword)
+{
+	string	passError = ":localhost 464 * :Password incorrect\n";
+	string	passOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
+
+	if (client->getPassCheck() == false && password == givenPassword)
+	{
+		client->setPassCheck();
+		sendRPLMessages(client);
+	}
+	else
+		if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send password error message\n");
+}
+
 void		Server::processIncomingData(Client *client, const std::string message)
 {
-	/*
-		Switch statement instead of awful if else (with function pointer beacuse it's cool)
-	*/
+	std::vector<std::string>	parsedCommand = parseCommand(message);
+
+
 	if (message.substr(0,6) == "CAP LS")
 		sendCAPLs(client);
 	else if (message.substr(0,7) == "CAP END")
-	{
-		sendRPLMessages(client);
 		sendPASSMessage(client);
+	else if (message.substr(0,4) == "PASS")
+	{
+		checkPassword(client, this->_serverPassword, parsedCommand[1]);
 	}
-	if (message.substr(0, 4) == "PING"){
-		std::cout << "PING RECEIVED" << std::endl;
-		handlePing(client->getSocket(), message.substr(5));
+	else if (message.substr(0, 4) == "PING"){
+		handlePing(client->getSocket(), parsedCommand[1]);
 	}
 	/*
 	else if (msg.substr(0, 4) == "JOIN")

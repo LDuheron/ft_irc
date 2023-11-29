@@ -12,8 +12,10 @@
 # include <sys/types.h>
 # include <unistd.h>
 # include <map>
+# include <vector>
 # include <cstring>
 # include <signal.h>
+# include <sstream>
 
 # include "../Client/Client.hpp"
 
