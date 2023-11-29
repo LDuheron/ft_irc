@@ -1,6 +1,5 @@
 
 #include "Client.hpp"
-#include <sys/epoll.h>
 
 // Constructor -----------------------------------------------------------------
 

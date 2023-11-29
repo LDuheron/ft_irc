@@ -1,17 +1,8 @@
-
-
+#pragma once
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
 # include "../Server/Server.hpp"
-
-#include <sys/epoll.h>
-
-
-class Channel;
-class Command;
-class Server;
-class Message;
 
 class Client
 {

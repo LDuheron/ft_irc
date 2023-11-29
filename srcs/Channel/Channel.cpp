@@ -1,32 +1,29 @@
-
-#include "../Channel/Channel.hpp"
-#include "../Server/Server.hpp"
+#include "Channel.hpp"
 
 # define MAX_USER 3
 
 // Constructor -----------------------------------------------------------------
 
-Channel::Channel() : _banned(), _members(), _operator(), _invited(),
-_hasPassword(FALSE), _maxUser(MAX_USER), _password("NULL"),
-_topic("NULL"), _type(REGULAR)
-{
-	if (DEBUG)
-		std::cout << "Channel " << this->_topic << " default constructor called\n";
-}
+Channel::Channel() :
+	_banned(),
+	_members(),
+	_operator(),
+	_invited(),
+	_hasPassword(FALSE),
+	_maxUser(MAX_USER),
+	_password("NULL"),
+	_topic("NULL"),
+	_type(REGULAR)
+{}
 
 Channel::Channel(Channel const & src)
 {
 	*this = src;
-	if (DEBUG)
-		std::cout << "Channel " << this->_topic << " default constructor called\n";
 }
 
 // Destructor ------------------------------------------------------------------
 Channel::~Channel()
-{
-	if (DEBUG)
-		std::cout << "Channel " << this->_topic << " destructor called\n";
-}
+{}
 
 // Accessors -------------------------------------------------------------------
 

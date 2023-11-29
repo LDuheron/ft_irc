@@ -4,10 +4,6 @@
 
 # include "../Server/Server.hpp"
 
-class Channel;
-class Client;
-class Command;
-
 # define REGULAR 0
 # define LOCAL 1
 // # define INVITATION_ONLY 1
@@ -17,6 +13,8 @@ class Command;
 # define TRUE 1
 
 // histoire du buffer avec netcat pour les messages.
+class Server;
+class Client;
 
 class Channel
 {

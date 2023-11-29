@@ -16,10 +16,12 @@
 # include <cstring>
 # include <signal.h>
 # include <sstream>
+# include <functional>
 
 # include "../Client/Client.hpp"
-# include "../Command/Command.hpp"
 # include "../Message/Message.hpp"
+# include "../Channel/Channel.hpp"
+# include "../Command/Command.hpp"
 
 # define DEBUG 0
 # define DEBUG2 0
@@ -44,7 +46,7 @@ private:
 	std::string					_serverPassword;
 	struct epoll_event			_serverEvent;	// events management for the server
 	struct	sockaddr_in 		_serverAddr;
-	std::map<int, Client *>		_clientMap;		// map instead of vector for better efficiency
+	std::map<int, Client *>		_clientMap;
 
 public:
 	Server();
