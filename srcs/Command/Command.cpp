@@ -8,12 +8,13 @@ using std::vector;
 
 // Constructor -----------------------------------------------------------------
 
-Command::Command(Server *server)
-	// _server(server)
+Command::Command(Server *server) :
+	_server(server)
 {
-	(void)server;
 	registerCommand("CAP LS", sendCAPLs);
 	registerCommand("PASS", sendPASSMessage);
+	registerCommand("NICK", handleNick);
+	registerCommand("USER", handleUser);
 	// registerCommand("JOIN", handleJoin);
 }
 
@@ -44,12 +45,12 @@ Command &	Command::operator=(Command const & rhs)
 
 // Functions -------------------------------------------------------------------
 
-void						Command::registerCommand(const std::string &command, CommandFunction function)
+void			Command::registerCommand(const std::string &command, CommandFunction function)
 {
 	this->_commandMap[command] = function;
 }
 
-std::vector<std::string>	Command::parseCommand(const std::string &command)
+vector<string>	Command::parseCommand(const std::string &command)
 {
 	vector<string>		parsedCommand;
 	std::istringstream	iss(command);
@@ -72,27 +73,28 @@ std::vector<std::string>	Command::parseCommand(const std::string &command)
 	return (parsedCommand);
 }
 
-void						Command::handleCommand(const std::vector<std::string> &parsedCommand)
+void			Command::handleCommand(Client *client, std::vector<std::string> &parsedCommand)
 {
-	if (!parsedCommand.empty())
+	while (!parsedCommand.empty())
 	{
 		const std::string &command = parsedCommand[0];
-		std::map<std::string, CommandFunction>::iterator it = this->_commandMap.find(command);
+		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(command);
 		if (it != this->_commandMap.end())
-			it->second(parsedCommand);
+			this->_commandMap[command](client, parsedCommand);
 		else
 			std::cerr <<"Error: Unknown command\n";
 	}
 }
 
-void						Command::sendCAPLs(Client *client)
+vector<string>	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 {
 	std::string capLs = ":DEFAULT CAP * LS :none\n";
 	if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send CAP LS\n");
+	parsedCommand.erase(parsedCommand.begin());
 }
 
-void						Command::sendRPLMessages(Client *client)
+vector<string>	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 {
 	std::string welcome1 = ":DEFAULT 001 lletourn :Welcome to the Internet Relay Network lletourn!user@host\n";
 	std::string welcome2 = ":DEFAULT 002 lletourn :Your host is DEFAULT, running version 0.1\n";
@@ -109,47 +111,64 @@ void						Command::sendRPLMessages(Client *client)
 			std::perror("Error : Failed to send 004.\n");
 }
 
-void						Command::sendPASSMessage(Client *client)
+vector<string>	Command::sendPASSMessage(Client *client, vector<string> &parsedCommand)
 {
 	std::string pass = "Password required. Try /quote PASS <password>\r\n\r\n";
 	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send PASS message\n");
 }
 
-void						Command::checkPassword(Client *client, const std::string &password, const std::string &givenPassword)
+vector<string>	Command::checkPassword(Client *client, vector<string> &parsedCommand, const std::string &givenPassword)
 {
 	string	passError = ":localhost 464 * :Password incorrect\n";
 	string	passOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
 
-	if (client->getPassCheck() == false && password == givenPassword)
+	if (client->getPassCheck() == false && parsedCommand[1] == givenPassword)
 	{
 		client->setPassCheck();
-		sendRPLMessages(client);
+		sendRPLMessages(client, parsedCommand);
 	}
 	else
 		if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
 			std::perror("Error : Failed to send password error message\n");
+	parsedCommand.erase(parsedCommand.begin(), parsedCommand.begin() + 1);
 }
 
-void						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
+vector<string>	Command::handlePing(Client *client, vector<string> &parsedCommand)
 {
-	std::string chanName = message.substr(6, message.size());
-	std::cout << "Channel name " << chanName << "\n";
+	std::string pingData;
 
-	std::map<std::string, Channel>::iterator it = _channels.find(chanName);
-	if (it != _channels.end())
+	parsedCommand.erase(parsedCommand.begin());
+	while (!parsedCommand.empty())
 	{
-		it->second.addMember(client);
-		it->second.addOperator(client);
+		pingData += parsedCommand[0] + " ";
+		parsedCommand.erase(parsedCommand.begin());
 	}
-	else
-	{
-		Channel	newChannel;
-
-		if (message[6] == '&')
-			newChannel.setType(LOCAL);
-		newChannel.addMember(client);
-		newChannel.addOperator(client);
-		_channels.insert(std::make_pair(chanName, newChannel));
-	}
+	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
+	if (send(client->getSocket(), pongResponse.c_str(), pongResponse.length(), 0) == -1)
+		std::cerr << "Error : Failed to send pong.\n";
 }
+
+
+// vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
+// {
+// 	std::string chanName = message.substr(6, message.size());
+// 	std::cout << "Channel name " << chanName << "\n";
+
+// 	std::map<std::string, Channel>::iterator it = _channels.find(chanName);
+// 	if (it != _channels.end())
+// 	{
+// 		it->second.addMember(client);
+// 		it->second.addOperator(client);
+// 	}
+// 	else
+// 	{
+// 		Channel	newChannel;
+
+// 		if (message[6] == '&')
+// 			newChannel.setType(LOCAL);
+// 		newChannel.addMember(client);
+// 		newChannel.addOperator(client);
+// 		_channels.insert(std::make_pair(chanName, newChannel));
+// 	}
+// }

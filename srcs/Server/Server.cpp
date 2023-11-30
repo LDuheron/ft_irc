@@ -15,7 +15,8 @@ Server::Server() :
 	_serverPassword("NULL"),
 	_serverEvent(),
 	_serverAddr(),
-	_clientMap()
+	_clientMap(),
+	_command(new Command(this))
 {
 	if (DEBUG)
 		std::cout << "Server : default constructor called.\n";
@@ -266,15 +267,16 @@ void		Server::handleClientEvent(Client *client)
 void		Server::processIncomingData(Client *client, const std::string message)
 {
 	vector<string>	parsedCommand = Command::parseCommand(message);
+	Command::handleCommand(client, parsedCommand);
 	
 	if (message.substr(0,6) == "CAP LS")
 		Command::sendCAPLs(client);
 	else if (message.substr(0,7) == "CAP END")
-		Command::sendPASSMessage(client);
+		Command::sendPASSMessage(client, parsedCommand);
 	else if (message.substr(0,4) == "PASS")
-		Command::checkPassword(client, this->_serverPassword, parsedCommand[1]);
+		Command::checkPassword(client, this->_serverPassword, parsedCommand);
 	else if (message.substr(0, 4) == "PING"){
-		handlePing(client->getSocket(), parsedCommand[1]);
+		handlePing(client->getSocket(), parsedCommand);
 	}
 	// else if (message.substr(0, 4) == "JOIN")
 	// 	Command::join(client, message, this->_channels);
@@ -284,11 +286,4 @@ void		Server::processIncomingData(Client *client, const std::string message)
 	else if (msg.substr(0, 5) == "TOPIC")
 	else if (msg.substr(0, 4) == "MODE")
 	*/
-}
-
-void		Server::handlePing(int clientSocket, const std::string &pingData)
-{
-	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
-	if (send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0) == -1)
-		std::cerr << "Error : Failed to send pong.\n";
 }

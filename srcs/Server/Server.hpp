@@ -37,25 +37,26 @@ class Message;
 class Server
 {
 private:
-	int							_IP;
-	int							_epollSocket;
-	int							_nbClients;
-	int							_serverPort;
-	int							_serverSocket;
-	std::string					_serverName;
-	std::string					_serverPassword;
-	struct epoll_event			_serverEvent;	// events management for the server
-	struct	sockaddr_in 		_serverAddr;
-	std::map<int, Client *>		_clientMap;
+	int						_IP;
+	int						_epollSocket;
+	int						_nbClients;
+	int						_serverPort;
+	int						_serverSocket;
+	string					_serverName;
+	string					_serverPassword;
+	struct epoll_event		_serverEvent;	// events management for the server
+	struct	sockaddr_in 	_serverAddr;
+	std::map<int, Client *>	_clientMap;
+	Command					*_command;
 
 public:
 	Server();
-	Server(int port, std::string password);
+	Server(int port, string password);
 	~Server();
 
 	int const 						&getIP(void) const;
-	std::string const 				&getNickname(void) const;
-	std::string const 				&getPassword(void) const;
+	string const 					&getNickname(void) const;
+	string const 					&getPassword(void) const;
 	int const 						&getPort(void) const;
 	int const 						&getSocket(void) const;
 	std::map<int, Client *> const	&getClientMap(void) const;
@@ -75,8 +76,7 @@ public:
 						//Gestion des messages reçus
 	void				handleClientEvent(Client *);
 						//Gestion du message reçu par un client spécifique
-	void				processIncomingData(Client *, const std::string);
-	void				handlePing(int, const std::string &);
+	void				processIncomingData(Client *, const string);
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const &);
