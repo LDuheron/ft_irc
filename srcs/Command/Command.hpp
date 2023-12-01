@@ -16,29 +16,27 @@ class Command
 	using CommandFunction = std::function<void(Client *, vector<string> &)>;
 	
 	private:
-		// Server	*_server;
 		std::map<string, CommandFunction>	_commandMap;
 	public:
 
-		Command(Server *server);
+		Command();
 		Command(Command const & src);
 		~Command();
 
 		Command	&operator=(Command const & rhs);
 
-		void 					registerCommand(const std::string &, CommandFunction);
-		static vector<string>	parseCommand(const std::string &);
-		static void				handleCommand(Client *client, std::vector<std::string> &);
+		void 					registerCommand(const string &, CommandFunction);
+		static vector<string>	parseLine(const string &);
+		static vector<string>	parseCommand(vector<string> &);
+		void					handleCommand(Client *client, const string &);
 
-
-		static vector<string>	sendCAPLs(Client *client, vector<string> &);
-		static vector<string>	sendRPLMessages(Client *client, vector<string> &);
-		static vector<string>	sendPASSMessage(Client *client, vector<string> &);
-		static vector<string>	checkPassword(Client *client, vector<string> &, const std::string &givenPassword);
-		static vector<string>	handleNick(Client *client, vector<string> &);
-		static vector<string>	handleUser(Client *client, vector<string> &);
-		static vector<string>	handlePing(Client *client, vector<string> &);
-
+		static void				sendCAPLs(Client *, vector<string> &);
+		static void				sendRPLMessages(Client *, vector<string> &);
+		static void				sendPASSMessage(Client *, vector<string> &);
+		static void				checkPassword(Client *, vector<string> &);
+		static void				handleNick(Client *, vector<string> &);
+		static void				handleUser(Client *, vector<string> &);
+		static void				handlePing(Client *, vector<string> &);
 
 		// static void						handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels);
 };

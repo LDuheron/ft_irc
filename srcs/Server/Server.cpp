@@ -16,9 +16,8 @@ Server::Server() :
 	_serverEvent(),
 	_serverAddr(),
 	_clientMap(),
-	_command(new Command(this))
+	_command(new Command())
 {
-	if (DEBUG)
 		std::cout << "Server : default constructor called.\n";
 }
 
@@ -57,15 +56,12 @@ void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
 std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
 
-// Functions - init data -------------------------------------------------------------------
-
-// https://ncona.com/2019/04/building-a-simple-server-with-cpp/
-
-// INIT_SERVERADDR : This function initializes the structure of data sockaddr_in.
-// sin_family is AF_INET = gives to socket an IPv4 socket address to allow it to
-// communicate with other hosts over a TCP/IP network.
-// sin_port member defines the TCP/IP port number for the socket address.
-
+void		Server::start(void)
+{
+	init_server();
+	while (1)
+		loop();
+}
 
 void		Server::init_serverAddr(void)
 {
@@ -171,7 +167,7 @@ static void	controlSocket(int socket, int operation)
 	}
 }
 
-static Client	*storeClient(int clientSocket, std::map<int, Client *> &clientMap, int &nbClients)
+static Client	*getClient(int clientSocket, Server *server, std::map<int, Client *> &clientMap, int &nbClients)
 {
 	if (nbClients >= MAX_CLIENTS)
 	{
@@ -180,7 +176,7 @@ static Client	*storeClient(int clientSocket, std::map<int, Client *> &clientMap,
 		return NULL;
 	}
 
-	Client *newClient = new Client(clientSocket);
+	Client *newClient = new Client(clientSocket, server);
 	clientMap.insert(std::make_pair(newClient->getSocket(), newClient));
 	++nbClients;
 	return newClient;
@@ -199,7 +195,7 @@ void		Server::handleNewClient(void)
 	// Set client socket to non-blocking mode
 	controlSocket(clientSocket, O_NONBLOCK);
 
-	Client *newClient = storeClient(clientSocket, this->_clientMap, this->_nbClients);
+	Client *newClient = getClient(clientSocket, this, this->_clientMap, this->_nbClients);
 
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
 }
@@ -264,20 +260,21 @@ void		Server::handleClientEvent(Client *client)
 	}
 }
 
+// Remove this function and put evertything in handleCommand ?
 void		Server::processIncomingData(Client *client, const std::string message)
 {
-	vector<string>	parsedCommand = Command::parseCommand(message);
-	Command::handleCommand(client, parsedCommand);
+	// vector<string>	parsedLines = Command::parseLine(message);
+	// vector<string>	parsedCommand = Command::parseCommand(parsedLines);
+	this->_command->handleCommand(client, message);
 	
-	if (message.substr(0,6) == "CAP LS")
-		Command::sendCAPLs(client);
-	else if (message.substr(0,7) == "CAP END")
-		Command::sendPASSMessage(client, parsedCommand);
-	else if (message.substr(0,4) == "PASS")
-		Command::checkPassword(client, this->_serverPassword, parsedCommand);
-	else if (message.substr(0, 4) == "PING"){
-		handlePing(client->getSocket(), parsedCommand);
-	}
+	// if (message.substr(0,6) == "CAP LS")
+	// 	Command::sendCAPLs(client);
+	// else if (message.substr(0,7) == "CAP END")
+	// 	Command::sendPASSMessage(client, parsedLines);
+	// else if (message.substr(0,4) == "PASS")
+	// 	Command::checkPassword(client, parsedLines);
+	// else if (message.substr(0, 4) == "PING")
+	// 	Command::handlePing(client, parsedLines);
 	// else if (message.substr(0, 4) == "JOIN")
 	// 	Command::join(client, message, this->_channels);
 	/*

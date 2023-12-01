@@ -3,13 +3,14 @@
 
 // Constructor -----------------------------------------------------------------
 
-Client::Client(int socket) :
+Client::Client(int socket, Server *server) :
 	_clientSocket(socket),
 	_nickname("DEFAULT"),
 	_username("DEFAULT"),
 	_nickCheck(false),
 	_passCheck(false),
-	_event()
+	_event(),
+	_server(server)
 {
 	setEvent();
 	if (DEBUG)
@@ -33,6 +34,10 @@ const std::string	&Client::getNickname(void) const { return (this->_nickname); }
 
 void 				Client::setNickname(const std::string & nickname) { this->_nickname = nickname; }
 
+const std::string	&Client::getUsername(void) const { return (this->_username); }
+
+void 				Client::setUsername(const std::string & username) { this->_username = username; }
+
 bool				Client::getNickCheck(void) const { return (this->_nickCheck); }
 
 void				Client::setNickCheck(void) { this->_nickCheck = true; }
@@ -51,6 +56,8 @@ struct epoll_event	*Client::getEventAddress(void)
 {
 	return (&this->_event);
 }
+
+Server				*Client::getServer(void) const { return (this->_server); }
 
 // Overload --------------------------------------------------------------------
 

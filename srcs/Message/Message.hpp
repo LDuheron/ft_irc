@@ -4,6 +4,7 @@
 
 # include "../Server/Server.hpp"
 
+class Client;
 class Message
 {
 	public:

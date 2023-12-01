@@ -8,13 +8,21 @@ using std::vector;
 
 // Constructor -----------------------------------------------------------------
 
-Command::Command(Server *server) :
-	_server(server)
+Command::Command()
 {
 	registerCommand("CAP LS", sendCAPLs);
-	registerCommand("PASS", sendPASSMessage);
+	registerCommand("CAP END", sendPASSMessage);
+	registerCommand("PASS", checkPassword);
+	registerCommand("PING", handlePing);
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
+
+	std::cout << "Command Map Size: " << this->_commandMap.size() << std::endl;
+
+
+	// //display map for debugging
+	// for (std::map<string, CommandFunction>::iterator it = this->_commandMap.begin(); it != this->_commandMap.end(); ++it)
+	// 	std::cout << it->first << " => " << it->second << '\n';
 	// registerCommand("JOIN", handleJoin);
 }
 
@@ -50,33 +58,54 @@ void			Command::registerCommand(const std::string &command, CommandFunction func
 	this->_commandMap[command] = function;
 }
 
-vector<string>	Command::parseCommand(const std::string &command)
+vector<string>	Command::parseLine(const std::string &command)
 {
-	vector<string>		parsedCommand;
+	vector<string>		parsedLines;
 	std::istringstream	iss(command);
+	string				token;
 
-		string				token;
+	while (std::getline (iss, token, '\r'))
+	{
+		if (!token.empty() && token.back() == '\n')
+			token.pop_back();
+		parsedLines.push_back(token);
+	}
 
-		parsedCommand.push_back(token);
+		parsedLines.push_back(token);
 		while (iss >> token)
-			parsedCommand.push_back(token);
-		if (parsedCommand[0] == "CAP")
+			parsedLines.push_back(token);
+		if (parsedLines[0] == "CAP")
 		{
-			parsedCommand[0] += " " + parsedCommand[1];
-			parsedCommand.erase(parsedCommand.begin() + 1);
+			parsedLines.erase(parsedLines.begin() + 1);
 		}
 
 		std::cout << "===== parsed command : =====\n";
-		for (std::vector<std::string>::iterator it = parsedCommand.begin(); it != parsedCommand.end(); ++it)
-			std::cout << *it << "\n";
+		for (std::vector<std::string>::iterator it = parsedLines.begin(); it != parsedLines.end(); ++it)
+			std::cout << *it;
 		std::cout << "============================\n";
+	return (parsedLines);
+}
+
+vector<string>	Command::parseCommand(vector<string> &parsedLines)
+{
+	vector<string>		parsedCommand;
+	std::istringstream	iss(parsedLines[0]);
+	string				token;
+
+	while (iss >> token)
+		parsedCommand.push_back(token);
+	parsedLines.erase(parsedLines.begin());
 	return (parsedCommand);
 }
 
-void			Command::handleCommand(Client *client, std::vector<std::string> &parsedCommand)
+void	Command::handleCommand(Client *client, const string &message)
 {
-	while (!parsedCommand.empty())
+	vector<string>	parsedLines = Command::parseLine(message);
+
+	while (!parsedLines.empty())
 	{
+
+		vector<string>	parsedCommand = Command::parseCommand(parsedLines);
 		const std::string &command = parsedCommand[0];
 		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(command);
 		if (it != this->_commandMap.end())
@@ -86,7 +115,7 @@ void			Command::handleCommand(Client *client, std::vector<std::string> &parsedCo
 	}
 }
 
-vector<string>	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
+void	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 {
 	std::string capLs = ":DEFAULT CAP * LS :none\n";
 	if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
@@ -94,8 +123,9 @@ vector<string>	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 	parsedCommand.erase(parsedCommand.begin());
 }
 
-vector<string>	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
+void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 {
+	(void)parsedCommand;
 	std::string welcome1 = ":DEFAULT 001 lletourn :Welcome to the Internet Relay Network lletourn!user@host\n";
 	std::string welcome2 = ":DEFAULT 002 lletourn :Your host is DEFAULT, running version 0.1\n";
 	std::string welcome3 = ":DEFAULT 003 lletourn :This server was created 2023/11/20\n";
@@ -111,19 +141,20 @@ vector<string>	Command::sendRPLMessages(Client *client, vector<string> &parsedCo
 			std::perror("Error : Failed to send 004.\n");
 }
 
-vector<string>	Command::sendPASSMessage(Client *client, vector<string> &parsedCommand)
+void	Command::sendPASSMessage(Client *client, vector<string> &parsedCommand)
 {
+	(void) parsedCommand;
 	std::string pass = "Password required. Try /quote PASS <password>\r\n\r\n";
 	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send PASS message\n");
 }
 
-vector<string>	Command::checkPassword(Client *client, vector<string> &parsedCommand, const std::string &givenPassword)
+void	Command::checkPassword(Client *client, vector<string> &parsedCommand)
 {
 	string	passError = ":localhost 464 * :Password incorrect\n";
 	string	passOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
 
-	if (client->getPassCheck() == false && parsedCommand[1] == givenPassword)
+	if (client->getPassCheck() == false && parsedCommand[1] == client->getServer()->getPassword())
 	{
 		client->setPassCheck();
 		sendRPLMessages(client, parsedCommand);
@@ -134,7 +165,7 @@ vector<string>	Command::checkPassword(Client *client, vector<string> &parsedComm
 	parsedCommand.erase(parsedCommand.begin(), parsedCommand.begin() + 1);
 }
 
-vector<string>	Command::handlePing(Client *client, vector<string> &parsedCommand)
+void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 {
 	std::string pingData;
 
@@ -149,6 +180,57 @@ vector<string>	Command::handlePing(Client *client, vector<string> &parsedCommand
 		std::cerr << "Error : Failed to send pong.\n";
 }
 
+void	Command::handleNick(Client *client, vector<string> &parsedCommand)
+{
+	if (parsedCommand.size() < 2)
+	{
+		std::string nickError = ":localhost 431 * :No nickname given\n";
+		if (send(client->getSocket(), nickError.c_str(), nickError.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send nickname error message\n");
+	}
+	else
+	{
+		if (client->getNickCheck() == false)
+		{
+			client->setNickname(parsedCommand[1]);
+			client->setNickCheck();
+		}
+		else
+		{
+			std::string nickError = ":localhost 433 * " + parsedCommand[1] + " :Nickname is already in use\n";
+			if (send(client->getSocket(), nickError.c_str(), nickError.length(), MSG_NOSIGNAL) == -1)
+				std::perror("Error : Failed to send nickname error message\n");
+		}
+	}
+	parsedCommand.erase(parsedCommand.begin(), parsedCommand.begin() + 1);
+}
+
+void	Command::handleUser(Client *client, vector<string> &parsedCommand)
+{
+	if (parsedCommand.size() < 5)
+	{
+		std::string userError = ":localhost 461 * USER :Not enough parameters\n";
+		if (send(client->getSocket(), userError.c_str(), userError.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send user error message\n");
+	}
+	else
+	{
+		if (client->getPassCheck() == false)
+		{
+			std::string passError = ":localhost 451 * :You have not registered\n";
+			if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
+				std::perror("Error : Failed to send password error message\n");
+		}
+		else
+		{
+			client->setUsername(parsedCommand[1]);
+			std::string userOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
+			if (send(client->getSocket(), userOk.c_str(), userOk.length(), MSG_NOSIGNAL) == -1)
+				std::perror("Error : Failed to send user ok message\n");
+		}
+	}
+	parsedCommand.erase(parsedCommand.begin(), parsedCommand.begin() + 1);
+}
 
 // vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
 // {

@@ -34,6 +34,8 @@ class Client;
 class Command;
 class Message;
 
+using std::string;
+
 class Server
 {
 private:
@@ -61,6 +63,7 @@ public:
 	int const 						&getSocket(void) const;
 	std::map<int, Client *> const	&getClientMap(void) const;
 
+	void				start();
 
 	void				setSocket(int);
 

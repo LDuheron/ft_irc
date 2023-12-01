@@ -25,9 +25,6 @@ int main(int argc, char **argv)
 	Server	server(atoi(argv[1]), argv[2]);
 	signal(SIGINT, signalHandler);
 
-	server.init_server();
-	std::cout << "Listening on port " << server.getPort() << ".\n";
-	while (1)
-		server.loop();
+	server.start();
 	return (0);
 }
