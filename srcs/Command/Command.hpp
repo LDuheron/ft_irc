@@ -35,7 +35,10 @@ class Command
 		static void				handleUser(Client *, vector<string> &);
 		static void				handlePing(Client *, vector<string> &);
 
-		// static void						handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels);
+
+		static void				handlePrivmsg(Client *, vector<string> &);
+		static void				handleJoin(Client *, vector<string> &);
+
 };
 
 #endif

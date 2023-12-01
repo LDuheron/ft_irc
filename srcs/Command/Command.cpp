@@ -11,11 +11,12 @@ using std::vector;
 Command::Command()
 {
 	registerCommand("CAP LS", sendCAPLs);
-	registerCommand("CAP END", sendPASSMessage);
+	// registerCommand("CAP END", sendPASSMessage);
 	registerCommand("PASS", checkPassword);
 	registerCommand("PING", handlePing);
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
+	registerCommand("PRIVMSG", handlePrivmsg);
 
 	// //display map for debugging
 	// for (std::map<string, CommandFunction>::iterator it = this->_commandMap.begin(); it != this->_commandMap.end(); ++it)
@@ -72,7 +73,7 @@ vector<string>	Command::parseCommand(vector<string> &parsedLines)
 
 	while (iss >> token)
 		parsedCommand.push_back(token);
-	if (parsedCommand[0] == "CAP")
+	if (!parsedCommand.empty() && parsedCommand[0] == "CAP") // FIX SEGFAULT TEMPORARY
 	{
 		parsedCommand[1] = "CAP " + parsedCommand[1];
 		parsedCommand.erase(parsedCommand.begin());
@@ -89,6 +90,8 @@ void	Command::handleCommand(Client *client, const string &message)
 	{
 		vector<string>	parsedCommand = Command::parseCommand(parsedLines);
 		const std::string &command = parsedCommand[0];
+		if (parsedCommand.empty()) /// FIX SEGFAULT TEMPORARY
+			return ;
 		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(command);
 		if (it != this->_commandMap.end())
 			this->_commandMap[command](client, parsedCommand);
@@ -214,7 +217,22 @@ void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 	parsedCommand.erase(parsedCommand.begin(), parsedCommand.begin() + 1);
 }
 
-// vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
+void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
+{
+	
+	// target = nickname of a client or channel
+	// if client is banned -> silently fail
+	// <source> = of the message represents the user or server that sent the message. 
+	// target starts with a $
+	std::cout << "0 : " << &parsedCommand[0] << " 1 " << &parsedCommand[1] << " 2 " << &parsedCommand[2];
+	send("PRIVMSG" +  + " :" + parsedCommand + "\r\n");
+	// perror(404);
+	(void)client;
+	// (void)parsedCommand;
+
+}
+
+// void				handleJoin(Client *client, vector<string> &parsedCommand)
 // {
 // 	std::string chanName = message.substr(6, message.size());
 // 	std::cout << "Channel name " << chanName << "\n";

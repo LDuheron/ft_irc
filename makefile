@@ -18,7 +18,7 @@ CC = /usr/bin/c++
 CFLAGS = -Wall -Wextra -Werror #-std=c++98
 CFLAGS +=	-MMD -MP
 CFLAGS +=	-Wshadow
-CFLAGS += -g
+CFLAGS += -g3
 
 #______________________________________________________________________________#
 ############################### Print Variables ################################
