@@ -69,5 +69,11 @@ void	Command::handlePing(int clientSocket, const std::string &pingData)
 
 static void	handlePrivmsg()
 {
-	send("PRIVMSG" + _channels.first() + " :" + )
+	// target = nickname of a client or channel
+	// if client is banned -> silently fail
+	// <source> = of the message represents the user or server that sent the message. 
+	// target starts with a $
+	//  
+	send("PRIVMSG" + _channels.first() + " :" + message + "\r\n");
+	perror(404);
 }

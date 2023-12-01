@@ -44,8 +44,9 @@ class Message;
 class Server
 {
 	private: // allFd unnecessary ?
-		std::map<int, Client *>		_clientMap;		// map instead of vector for better efficiency
+		std::map<int, Client *>			_clientMap;		// map instead of vector for better efficiency
 		std::map<std::string, Channel>	_channels;
+		// std::map<std::string, void>		_commandsMap;
 		// std::vector<int>			_allFd;			// _allFd[0] = fd du server, else fd clients
 		// Command						_cmd;
 

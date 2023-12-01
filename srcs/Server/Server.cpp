@@ -1,6 +1,7 @@
 #include "../Server/Server.hpp"
 #include <asm-generic/errno.h>
 #include <cstddef>
+#include <functional>
 #include <iostream>
 #include <netinet/in.h>
 #include <string>
@@ -16,6 +17,9 @@ Server::Server() : //_allClients(), //allFd(),
 	_nickname("DEFAULT"), _nbClients(0), _serverPassword("NULL"),
 	_serverPort(0), _serverAddr(), _serverSocket(0)
 {
+	// this->_commandsMap["/JOIN"] = handleJoin();
+	// this->_commandsMap["/PING"] = handlePing();
+	// this->_commandsMap["/PRIVMSG"] = handlePrivmsg();
 	if (DEBUG)
 		std::cout << "Server : default constructor called.\n";
 }
