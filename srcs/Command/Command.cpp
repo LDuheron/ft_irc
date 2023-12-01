@@ -17,39 +17,17 @@ Command::Command()
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
 
-	std::cout << "Command Map Size: " << this->_commandMap.size() << std::endl;
-
-
 	// //display map for debugging
 	// for (std::map<string, CommandFunction>::iterator it = this->_commandMap.begin(); it != this->_commandMap.end(); ++it)
 	// 	std::cout << it->first << " => " << it->second << '\n';
 	// registerCommand("JOIN", handleJoin);
 }
 
-Command::Command(Command const & src)
-{
-	*this = src;
-	if (DEBUG)
-		std::cout << "Command copy constructor called.";
-}
-
 // Destructor ------------------------------------------------------------------
-
-Command::~Command()
-{
-	if (DEBUG)
-		std::cout << "Command destructor called.";
-}
 
 // Accessors -------------------------------------------------------------------
 
 // Overload --------------------------------------------------------------------
-
-Command &	Command::operator=(Command const & rhs)
-{
-	(void)rhs;
-	return (*this);
-}
 
 // Functions -------------------------------------------------------------------
 
@@ -82,7 +60,7 @@ vector<string>	Command::parseLine(const std::string &command)
 		std::cout << "===== parsed command : =====\n";
 		for (std::vector<std::string>::iterator it = parsedLines.begin(); it != parsedLines.end(); ++it)
 			std::cout << *it;
-		std::cout << "============================\n";
+		std::cout << "\n============================\n";
 	return (parsedLines);
 }
 
@@ -94,6 +72,11 @@ vector<string>	Command::parseCommand(vector<string> &parsedLines)
 
 	while (iss >> token)
 		parsedCommand.push_back(token);
+	if (parsedCommand[0] == "CAP")
+	{
+		parsedCommand[1] = "CAP " + parsedCommand[1];
+		parsedCommand.erase(parsedCommand.begin());
+	}
 	parsedLines.erase(parsedLines.begin());
 	return (parsedCommand);
 }
@@ -104,14 +87,13 @@ void	Command::handleCommand(Client *client, const string &message)
 
 	while (!parsedLines.empty())
 	{
-
 		vector<string>	parsedCommand = Command::parseCommand(parsedLines);
 		const std::string &command = parsedCommand[0];
 		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(command);
 		if (it != this->_commandMap.end())
 			this->_commandMap[command](client, parsedCommand);
 		else
-			std::cerr <<"Error: Unknown command\n";
+			std::cerr <<"Error: Unknown command: " << command << "\n";
 	}
 }
 
@@ -143,8 +125,8 @@ void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 
 void	Command::sendPASSMessage(Client *client, vector<string> &parsedCommand)
 {
-	(void) parsedCommand;
-	std::string pass = "Password required. Try /quote PASS <password>\r\n\r\n";
+	(void) parsedCommand;	
+	std::string pass = "Password required. Try /quote PASS <password>\n";
 	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send PASS message\n");
 }

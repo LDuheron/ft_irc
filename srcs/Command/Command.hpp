@@ -17,13 +17,10 @@ class Command
 	
 	private:
 		std::map<string, CommandFunction>	_commandMap;
+
 	public:
-
 		Command();
-		Command(Command const & src);
 		~Command();
-
-		Command	&operator=(Command const & rhs);
 
 		void 					registerCommand(const string &, CommandFunction);
 		static vector<string>	parseLine(const string &);

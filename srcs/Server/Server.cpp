@@ -5,22 +5,6 @@ using std::vector;
 
 // Constructor -----------------------------------------------------------------
 
-Server::Server() :
-	_IP(0),
-	_epollSocket(0),
-	_nbClients(0),
-	_serverPort(0),
-	_serverSocket(0),
-	_serverName("DEFAULT"),
-	_serverPassword("NULL"),
-	_serverEvent(),
-	_serverAddr(),
-	_clientMap(),
-	_command(new Command())
-{
-		std::cout << "Server : default constructor called.\n";
-}
-
 Server::Server(int port, std::string password) :
 	_IP(0),
 	_epollSocket(0),
@@ -31,7 +15,8 @@ Server::Server(int port, std::string password) :
 	_serverPassword(password),
 	_serverEvent(),
 	_serverAddr(),
-	_clientMap()
+	_clientMap(),
+	_command(new Command())
 {}
 
 // Destructor ------------------------------------------------------------------
