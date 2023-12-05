@@ -73,7 +73,7 @@ vector<string>	Command::parseCommand(vector<string> &parsedLines)
 
 	while (iss >> token)
 		parsedCommand.push_back(token);
-	if (!parsedCommand.empty() && parsedCommand[0] == "CAP") // FIX SEGFAULT TEMPORARY
+	if (!parsedCommand.empty() && parsedCommand[0] == "CAP") // &&  FIX SEGFAULT TEMPORARY
 	{
 		parsedCommand[1] = "CAP " + parsedCommand[1];
 		parsedCommand.erase(parsedCommand.begin());
@@ -93,10 +93,11 @@ void	Command::handleCommand(Client *client, const string &message)
 		if (parsedCommand.empty()) /// FIX SEGFAULT TEMPORARY
 			return ;
 		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(command);
+		std::cout << "DEBUG : -" << parsedCommand[0] << " 1: " << parsedCommand[1] << "-" << std::endl;
 		if (it != this->_commandMap.end())
 			this->_commandMap[command](client, parsedCommand);
 		else
-			std::cerr <<"Error: Unknown command: " << command << "\n";
+			std::cerr << "Error: Unknown command: " << command << "\n";
 	}
 }
 
@@ -219,19 +220,44 @@ void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 
 void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 {
-	
-	// target = nickname of a client or channel
-	// if client is banned -> silently fail
-	// <source> = of the message represents the user or server that sent the message. 
-	// target starts with a $
-	std::cout << "0 : " << &parsedCommand[0] << " 1 " << &parsedCommand[1] << " 2 " << &parsedCommand[2];
-	send("PRIVMSG" +  + " :" + parsedCommand + "\r\n");
-	// perror(404);
-	(void)client;
-	// (void)parsedCommand;
+
+	// if (parsedCommand.size() < 3)
+	//	{
+	// 		std::cout << "Error: Insufficient parameters for PRIVMSG command.\n";
+    //		return;
+	// }
+
+	std::string msg;
+
+	if (client->isBannedOfChannel(parsedCommand[1]))
+	{
+		std::cout << "Error : Prvmsg silently failed...\n";
+		return ;
+	}
+	Server *serv = client->getServer();
+	for (std::map<int, Client *>::const_iterator itClient = serv->getClientMap().begin(); itClient != serv->getClientMap().end(); itClient++)
+	{
+		if (itClient->second->getNickname() == parsedCommand[1])
+		{
+			msg = "PRIVMSG " + parsedCommand[1] + " :" + parsedCommand[2] + "\r\n";
+			break ;
+		}
+	}
+	if (msg.empty())
+	{
+		if (client->isMemberOfChannel(parsedCommand[1]))
+			msg = "PRIVMSG " + parsedCommand[1] + " :" + parsedCommand[2] + "\r\n";
+		else 
+			std::cout << "Error : client is not a member of the channel.\n";
+	}
+
+	if (!msg.empty())
+		send(serv->getSocket(), msg.c_str(), msg.length(), 0); /////////////
 
 }
 
+	// (void)client;
+	// (void)parsedCommand;
 // void				handleJoin(Client *client, vector<string> &parsedCommand)
 // {
 // 	std::string chanName = message.substr(6, message.size());
@@ -254,3 +280,4 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 // 		_channels.insert(std::make_pair(chanName, newChannel));
 // 	}
 // }
+

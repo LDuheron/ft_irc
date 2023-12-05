@@ -39,6 +39,9 @@ using std::string;
 class Server
 {
 private:
+	// add something for all the channel
+	std::vector<Channel *>	_allChannel; ///////////
+
 	int						_IP;
 	int						_epollSocket;
 	int						_nbClients;

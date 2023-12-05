@@ -37,6 +37,8 @@ int const						&Server::getIP(void) const { return (this->_IP); }
 
 int const						&Server::getPort(void) const { return (this->_serverPort); }
 
+int const						&Server::getSocket(void) const { return (this->_serverSocket); }
+
 void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
 std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
@@ -192,6 +194,14 @@ void		Server::loop(void)
 
 	if ((fd_ready = epoll_wait(this->_epollSocket, events, MAX_CLIENTS, -1)) == -1)
 		std::perror("Error: Failed to wait for events");
+
+	int reuseAddr = 1;
+    if (setsockopt(this->_serverSocket, SOL_SOCKET, SO_REUSEADDR, &reuseAddr, sizeof(reuseAddr)) == -1)
+	{
+		std::cout << "reuse port error.";
+		close(this->_serverSocket);
+		exit(-1);
+	}
 
 	for (int i = 0; i < fd_ready; ++i)
 	{

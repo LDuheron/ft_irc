@@ -32,12 +32,17 @@ Channel::~Channel()
 // 	return (this->_password);
 // }
 
+const std::string &	Channel::getName(void) const
+{
+	return (this->_name);
+}
+
 void	Channel::setPassword(std::string const &password)
 {
 	this->_password = password;
 }
 
-const std::string &	Channel::getTopic(void)
+const std::string &	Channel::getTopic(void) const
 {
 	return (this->_topic);
 }
@@ -47,7 +52,7 @@ void	Channel::setTopic(std::string const &topic)
 	this->_topic = topic;
 }
 
-const int &	Channel::getMaxUser(void)
+const int &	Channel::getMaxUser(void) const
 {
 	return (this->_maxUser);
 }
@@ -57,7 +62,7 @@ void	Channel::setMaxUser(int const &maxUser)
 	this->_maxUser = maxUser;
 }
 
-const int &	Channel::getType(void)
+const int &	Channel::getType(void) const
 {
 	return (this->_type);
 }

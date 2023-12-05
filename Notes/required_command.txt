@@ -8,3 +8,6 @@ Necessary :
 - Join
 - Ping
 - PRIVMSG
+- banned
+- unbann
+- mettre un mot de passe a un channel.

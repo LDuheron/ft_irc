@@ -16,6 +16,9 @@
 class Server;
 class Client;
 
+class Command;
+class Message;
+
 class Channel
 {
 	private:
@@ -25,8 +28,8 @@ class Channel
 		std::vector<Client *>		_invited;
 
 		bool						_hasPassword;
-
 		int							_maxUser;
+		std::string					_name;
 		std::string					_password;
 		std::string					_topic; // general description of the channel
 		int							_type; // regular #, local &
@@ -38,16 +41,18 @@ class Channel
 		Channel(Channel const & src);
 		~Channel();
 
-		const int 			&getMaxUser(void);
+		const int 			&getMaxUser(void) const;
 		void				setMaxUser(int const &maxUser);
+
+		const std::string	&getName(void) const;
 
 		// const std::string	&getPassword(void);
 		void				setPassword(std::string const &password);
 
-		const std::string	&getTopic(void);
+		const std::string	&getTopic(void) const;
 		void				setTopic(std::string const &name);
 
-		const int 			&getType(void);
+		const int 			&getType(void) const;
 		void				setType(int const &type);
 
 		Channel &			operator=(Channel const & rhs);

@@ -4,18 +4,22 @@
 
 # include "../Server/Server.hpp"
 
+class Channel;
 class Server;
+class Command; //////// DEBUG
 
 class Client
 {
 	private:
-		int					_clientSocket;
-		std::string			_nickname;
-		std::string			_username;
-		bool				_nickCheck;
-		bool				_passCheck;
-		struct epoll_event	_event;
-		Server				*_server;
+		int						_clientSocket;
+		std::string				_nickname;
+		std::string				_username;
+		bool					_nickCheck;
+		bool					_passCheck;
+		struct epoll_event		_event;
+		Server					*_server;
+		std::vector<Channel *>	_isChannelMember;
+		std::vector<Channel *>	_isBannedFromChannel;
 
 	public:
 		Client(int, Server *);
@@ -34,6 +38,9 @@ class Client
 		void				setEvent();
 		struct epoll_event	*getEventAddress(void);
 		Server				*getServer(void) const;
+
+		int					isBannedOfChannel(std::string str);
+		int					isMemberOfChannel(std::string str);
 
 		Client &operator=(Client const & rhs);
 };
