@@ -22,10 +22,10 @@ class Command
 		Command();
 		~Command();
 
-		void 					registerCommand(const string &, CommandFunction);
-		static vector<string>	parseLine(const string &);
-		static vector<string>	parseCommand(vector<string> &);
-		void					handleCommand(Client *client, const string &);
+		void 							registerCommand(const string &, CommandFunction);
+		static vector<vector<string>>	parseLine(const string &);
+		// static vector<string>			parseCommand(vector<string> &);
+		void							handleCommand(Client *client, const string &);
 
 		static void				sendCAPLs(Client *, vector<string> &);
 		static void				sendRPLMessages(Client *, vector<string> &);
