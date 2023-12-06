@@ -252,12 +252,13 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 	}
 
 	if (!msg.empty())
-		send(serv->getSocket(), msg.c_str(), msg.length(), 0); /////////////
-
-}
+		send(serv->getSocket(), msg.c_str(), msg.length(), 0);
 
 	// (void)client;
 	// (void)parsedCommand;
+}
+
+
 // void				handleJoin(Client *client, vector<string> &parsedCommand)
 // {
 // 	std::string chanName = message.substr(6, message.size());
@@ -280,4 +281,6 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 // 		_channels.insert(std::make_pair(chanName, newChannel));
 // 	}
 // }
+
+// ajouter le channel 
 
