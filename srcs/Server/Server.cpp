@@ -1,24 +1,9 @@
 #include "../Server/Server.hpp"
 
 using std::string;
+using std::vector;
 
 // Constructor -----------------------------------------------------------------
-
-Server::Server() :
-	_IP(0),
-	_epollSocket(0),
-	_nbClients(0),
-	_serverPort(0),
-	_serverSocket(0),
-	_serverName("DEFAULT"),
-	_serverPassword("NULL"),
-	_serverEvent(),
-	_serverAddr(),
-	_clientMap()
-{
-	if (DEBUG)
-		std::cout << "Server : default constructor called.\n";
-}
 
 Server::Server(int port, std::string password) :
 	_IP(0),
@@ -30,7 +15,8 @@ Server::Server(int port, std::string password) :
 	_serverPassword(password),
 	_serverEvent(),
 	_serverAddr(),
-	_clientMap()
+	_clientMap(),
+	_command(new Command())
 {}
 
 // Destructor ------------------------------------------------------------------
@@ -55,15 +41,12 @@ void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
 std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
 
-// Functions - init data -------------------------------------------------------------------
-
-// https://ncona.com/2019/04/building-a-simple-server-with-cpp/
-
-// INIT_SERVERADDR : This function initializes the structure of data sockaddr_in.
-// sin_family is AF_INET = gives to socket an IPv4 socket address to allow it to
-// communicate with other hosts over a TCP/IP network.
-// sin_port member defines the TCP/IP port number for the socket address.
-
+void		Server::start(void)
+{
+	init_server();
+	while (1)
+		loop();
+}
 
 void		Server::init_serverAddr(void)
 {
@@ -169,7 +152,7 @@ static void	controlSocket(int socket, int operation)
 	}
 }
 
-static Client	*storeClient(int clientSocket, std::map<int, Client *> &clientMap, int &nbClients)
+static Client	*getClient(int clientSocket, Server *server, std::map<int, Client *> &clientMap, int &nbClients)
 {
 	if (nbClients >= MAX_CLIENTS)
 	{
@@ -178,7 +161,7 @@ static Client	*storeClient(int clientSocket, std::map<int, Client *> &clientMap,
 		return NULL;
 	}
 
-	Client *newClient = new Client(clientSocket);
+	Client *newClient = new Client(clientSocket, server);
 	clientMap.insert(std::make_pair(newClient->getSocket(), newClient));
 	++nbClients;
 	return newClient;
@@ -197,7 +180,7 @@ void		Server::handleNewClient(void)
 	// Set client socket to non-blocking mode
 	controlSocket(clientSocket, O_NONBLOCK);
 
-	Client *newClient = storeClient(clientSocket, this->_clientMap, this->_nbClients);
+	Client *newClient = getClient(clientSocket, this, this->_clientMap, this->_nbClients);
 
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
 }
@@ -262,102 +245,27 @@ void		Server::handleClientEvent(Client *client)
 	}
 }
 
-static std::vector<std::string> parseCommand(const std::string &command)
-{
-	std::vector<std::string>	parsedCommand;
-	std::istringstream			iss(command);
-	std::string					token;
-
-	while (iss >> token)
-		parsedCommand.push_back(token);
-	if (parsedCommand[0] == "CAP")
-	{
-		parsedCommand[0] += " " + parsedCommand[1];
-		parsedCommand.erase(parsedCommand.begin() + 1);
-	}
-
-	std::cout << "===== parsed command : =====\n";
-	for (std::vector<std::string>::iterator it = parsedCommand.begin(); it != parsedCommand.end(); ++it)
-		std::cout << *it << "\n";
-	std::cout << "============================\n";
-	return (parsedCommand);
-}
-
-static void	sendCAPLs(Client *client)
-{
-	std::string capLs = ":DEFAULT CAP * LS :none\n";
-	if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
-		std::perror("Error : Failed to send CAP LS\n");
-}
-
-static void	sendRPLMessages(Client *client)
-{
-	std::string welcome1 = ":DEFAULT 001 lletourn :Welcome to the Internet Relay Network lletourn!user@host\n";
-	std::string welcome2 = ":DEFAULT 002 lletourn :Your host is DEFAULT, running version 0.1\n";
-	std::string welcome3 = ":DEFAULT 003 lletourn :This server was created 2023/11/20\n";
-	std::string welcome4 = ":DEFAULT 004 lletourn DEFAULT ircd_version user_modes chan_modes\n";
-
-		if (send(client->getSocket(), welcome1.c_str(), welcome1.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send 001.\n");
-		if (send(client->getSocket(), welcome2.c_str(), welcome2.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send 002.\n");
-		if (send(client->getSocket(), welcome3.c_str(), welcome3.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send 003.\n");
-		if (send(client->getSocket(), welcome4.c_str(), welcome4.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send 004.\n");
-}
-
-static void	sendPASSMessage(Client *client)
-{
-	std::string pass = "Password required. Try /quote PASS <password>\r\n\r\n";
-	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
-		std::perror("Error : Failed to send PASS message\n");
-}
-
-static void checkPassword(Client *client, const std::string &password, const std::string &givenPassword)
-{
-	string	passError = ":localhost 464 * :Password incorrect\n";
-	string	passOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
-
-	if (client->getPassCheck() == false && password == givenPassword)
-	{
-		client->setPassCheck();
-		sendRPLMessages(client);
-	}
-	else
-		if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send password error message\n");
-}
-
+// Remove this function and put evertything in handleCommand ?
 void		Server::processIncomingData(Client *client, const std::string message)
 {
-	std::vector<std::string>	parsedCommand = parseCommand(message);
-
-
-	if (message.substr(0,6) == "CAP LS")
-		sendCAPLs(client);
-	else if (message.substr(0,7) == "CAP END")
-		sendPASSMessage(client);
-	else if (message.substr(0,4) == "PASS")
-	{
-		checkPassword(client, this->_serverPassword, parsedCommand[1]);
-	}
-	else if (message.substr(0, 4) == "PING"){
-		handlePing(client->getSocket(), parsedCommand[1]);
-	}
-	else if (message.substr(0, 4) == "JOIN")
-		Command::join(client, message, this->_channels);
+	// vector<string>	parsedLines = Command::parseLine(message);
+	// vector<string>	parsedCommand = Command::parseCommand(parsedLines);
+	this->_command->handleCommand(client, message);
+	
+	// if (message.substr(0,6) == "CAP LS")
+	// 	Command::sendCAPLs(client);
+	// else if (message.substr(0,7) == "CAP END")
+	// 	Command::sendPASSMessage(client, parsedLines);
+	// else if (message.substr(0,4) == "PASS")
+	// 	Command::checkPassword(client, parsedLines);
+	// else if (message.substr(0, 4) == "PING")
+	// 	Command::handlePing(client, parsedLines);
+	// else if (message.substr(0, 4) == "JOIN")
+	// 	Command::join(client, message, this->_channels);
 	/*
 	else if (msg.substr(0, 4) == "KICK")
 	else if (msg.substr(0, 6) == "INVITE")
 	else if (msg.substr(0, 5) == "TOPIC")
 	else if (msg.substr(0, 4) == "MODE")
 	*/
-}
-
-void		Server::handlePing(int clientSocket, const std::string &pingData)
-{
-	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
-	if (send(clientSocket, pongResponse.c_str(), pongResponse.length(), 0) == -1)
-		std::cerr << "Error : Failed to send pong.\n";
 }

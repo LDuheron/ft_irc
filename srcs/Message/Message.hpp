@@ -4,15 +4,13 @@
 
 # include "../Server/Server.hpp"
 
+class Client;
 class Message
 {
 	public:
 
-		Message();
-		Message(const Message &toCopy);
+		Message(Client *, Client *, const std::string &);
 		~Message();
-
-		Message	&operator=(const Message &rhs);
 
 	protected:
 
