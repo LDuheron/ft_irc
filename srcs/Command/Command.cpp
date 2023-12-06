@@ -2,7 +2,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <ios>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -15,15 +14,17 @@ using std::vector;
 Command::Command()
 {
 	registerCommand("CAP LS", sendCAPLs);
-	registerCommand("CAP END", sendPASSMessage);
+	registerCommand("CAP END", doNothing);
 	registerCommand("PASS", checkPassword);
 	registerCommand("PING", handlePing);
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
 
-	// //display map for debugging
-	// for (std::map<string, CommandFunction>::iterator it = this->_commandMap.begin(); it != this->_commandMap.end(); ++it)
-	// 	std::cout << it->first << "\n";
+
+	registerCommand("QUIT", doNothing);
+	registerCommand("WHOIS", doNothing);
+	registerCommand("MODE", doNothing);
+
 	// registerCommand("JOIN", handleJoin);
 }
 
@@ -40,7 +41,7 @@ void			Command::registerCommand(const std::string &command, CommandFunction func
 	this->_commandMap[command] = function;
 }
 
-vector<string> splitString(const string &command, const string &delimiter)
+vector<string> splitString(Client *client, const string &command, const string &delimiter)
 {
 	vector<string> result;
 
@@ -54,14 +55,23 @@ vector<string> splitString(const string &command, const string &delimiter)
 		end = command.find(delimiter, pos);
 	}
 	if (pos < command.size())
+	{
 		result.push_back(command.substr(pos, end - pos));
+		client->setIncomplete(true);
+		std::cout << "Incomplete message received from client.\n";
+	}
+	else
+	{
+		client->setIncomplete(false);
+		std::cout << "Complete message received from client.\n";
+	}
 	return (result);
 }
 
-vector<vector<string>>	Command::parseLine(const std::string &command)
+vector<vector<string>>	Command::parseLine(Client *client, const std::string &command)
 {
 	vector<vector<string>>	parsedLines;
-	vector<string>			line = splitString(command, "\r\n");
+	vector<string>			line = splitString(client, command, DELIMITER);
 	while (!line.empty())
 	{
 		std::istringstream	iss(line[0]);
@@ -78,20 +88,20 @@ vector<vector<string>>	Command::parseLine(const std::string &command)
 		parsedLines.push_back(parsedCommand);
 		line.erase(line.begin());
 	}
-	std::cout << "\n===== Parsed Line =====\n";
+	std::cout << "\n===== Data received from client : =====\n";
 	for(std::vector<std::vector<std::string>>::iterator it = parsedLines.begin(); it != parsedLines.end(); ++it)
 	{
 		for (std::vector<std::string>::iterator it2 = it->begin(); it2 != it->end(); ++it2)
-			std::cout << *it2 << "|";
+			std::cout << *it2 << " ";
 		std::cout << "\n";
 	}
-	std::cout << "=======================\n\n";
+	std::cout << "=======================================\n\n";
 	return (parsedLines);
 }
 
 void	Command::handleCommand(Client *client, const string &message)
 {
-	vector<vector<string>>	parsedLines = Command::parseLine(message);
+	vector<vector<string>>	parsedLines = Command::parseLine(client, message);
 
 	while (!parsedLines.empty())
 	{
@@ -117,18 +127,26 @@ void	Command::handleCommand(Client *client, const string &message)
 void	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 {
 	(void)parsedCommand;
-	std::string capLs = ":DEFAULT CAP * LS :none\n";
-	if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
-		std::perror("Error : Failed to send CAP LS\n");
+	if (client->getPassCheck() == false)
+	{
+		client->setCapLSsent(true);
+		return;
+	}
+	else
+	{
+		std::string capLs = ":DEFAULT CAP * LS :none\n";
+		if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send CAP LS\n");
+	}
 }
 
 void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 {
 	(void)parsedCommand;
-	std::string welcome1 = ":DEFAULT 001 lletourn :Welcome to the Internet Relay Network lletourn!user@host\n";
-	std::string welcome2 = ":DEFAULT 002 lletourn :Your host is DEFAULT, running version 0.1\n";
-	std::string welcome3 = ":DEFAULT 003 lletourn :This server was created 2023/11/20\n";
-	std::string welcome4 = ":DEFAULT 004 lletourn DEFAULT ircd_version user_modes chan_modes\n";
+	std::string welcome1 = ":" + client->getServer()->getNickname() + " 001 " + client->getNickname() + " :Welcome to the Internet Relay Network " + client->getNickname() + "!" + client->getUsername() + "@" + client->getServer()->getNickname() + "\n";
+	std::string welcome2 = ":" + client->getServer()->getNickname() + " 002 " + client->getNickname() + ":Your host is " + client->getServer()->getNickname()+ ", running version 0.1\n";
+	std::string welcome3 = ":" + client->getServer()->getNickname() + " 003 " + client->getNickname() + ":This server was created 2023/11/20\n";
+	std::string welcome4 = ":" + client->getServer()->getNickname() + " 004 " + client->getNickname() + client->getServer()->getNickname() + " ircd_version user_modes chan_modes\n";
 
 		if (send(client->getSocket(), welcome1.c_str(), welcome1.length(), MSG_NOSIGNAL) == -1)
 			std::perror("Error : Failed to send 001.\n");
@@ -140,12 +158,13 @@ void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 			std::perror("Error : Failed to send 004.\n");
 }
 
-void	Command::sendPASSMessage(Client *client, vector<string> &parsedCommand)
+void	Command::sendPASSMessage(Client *client)
 {
-	(void) parsedCommand;	
-	std::string pass = "Password required. Try /quote PASS <password>\n";
+	Command::sendNewLine(client);
+	std::string pass = "Password required.\nTry /quote PASS <password>\n";
 	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send PASS message\n");
+	Command::sendNewLine(client);
 }
 
 void	Command::checkPassword(Client *client, vector<string> &parsedCommand)
@@ -224,6 +243,19 @@ void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 				std::perror("Error : Failed to send user ok message\n");
 		}
 	}
+}
+
+void	Command::doNothing(Client *Client, vector<string> &cmd)
+{
+	(void)Client;
+	(void)cmd;
+}
+
+void	Command::sendNewLine(Client *client)
+{
+	std::string newLine = " \n";
+	if (send(client->getSocket(), newLine.c_str(), newLine.length(), MSG_NOSIGNAL) == -1)
+		std::perror("Error : Failed to send new line\n");
 }
 
 // vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)

@@ -11,7 +11,7 @@ Server::Server(int port, std::string password) :
 	_nbClients(0),
 	_serverPort(port),
 	_serverSocket(0),
-	_serverName("DEFAULT"),
+	_serverName("ircserv"),
 	_serverPassword(password),
 	_serverEvent(),
 	_serverAddr(),
@@ -183,6 +183,7 @@ void		Server::handleNewClient(void)
 	Client *newClient = getClient(clientSocket, this, this->_clientMap, this->_nbClients);
 
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
+	Command::sendPASSMessage(newClient);
 }
 
 void		Server::loop(void)
@@ -241,31 +242,13 @@ void		Server::handleClientEvent(Client *client)
 	else
 	{
 		buffer[bytesRead] = '\0';
-		processIncomingData(client, buffer);
+		this->_command->handleCommand(client, buffer);
+		// processIncomingData(client, buffer);
 	}
 }
 
 // Remove this function and put evertything in handleCommand ?
-void		Server::processIncomingData(Client *client, const std::string message)
-{
-	// vector<string>	parsedLines = Command::parseLine(message);
-	// vector<string>	parsedCommand = Command::parseCommand(parsedLines);
-	this->_command->handleCommand(client, message);
-	
-	// if (message.substr(0,6) == "CAP LS")
-	// 	Command::sendCAPLs(client);
-	// else if (message.substr(0,7) == "CAP END")
-	// 	Command::sendPASSMessage(client, parsedLines);
-	// else if (message.substr(0,4) == "PASS")
-	// 	Command::checkPassword(client, parsedLines);
-	// else if (message.substr(0, 4) == "PING")
-	// 	Command::handlePing(client, parsedLines);
-	// else if (message.substr(0, 4) == "JOIN")
-	// 	Command::join(client, message, this->_channels);
-	/*
-	else if (msg.substr(0, 4) == "KICK")
-	else if (msg.substr(0, 6) == "INVITE")
-	else if (msg.substr(0, 5) == "TOPIC")
-	else if (msg.substr(0, 4) == "MODE")
-	*/
-}
+// void		Server::processIncomingData(Client *client, const std::string message)
+// {
+// 	this->_command->handleCommand(client, message);
+// }
