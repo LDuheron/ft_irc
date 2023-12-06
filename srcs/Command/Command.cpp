@@ -186,10 +186,8 @@ void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 {
 	std::string pingData;
 
-	while (!parsedCommand.empty())
-	{
-		pingData += parsedCommand[1] + " ";
-	}
+	// while (!parsedCommand.empty())
+	pingData += parsedCommand[1] + " ";
 	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
 	if (send(client->getSocket(), pongResponse.c_str(), pongResponse.length(), 0) == -1)
 		std::cerr << "Error : Failed to send pong.\n";
@@ -219,6 +217,8 @@ void	Command::handleNick(Client *client, vector<string> &parsedCommand)
 	}
 }
 
+// ERR_NEEDMOREPARAMS			OK
+// ERR_ALREADYREGISTRED			X
 void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 {
 	if (parsedCommand.size() < 5)
@@ -229,20 +229,20 @@ void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 	}
 	else
 	{
-		if (client->getPassCheck() == false)
-		{
-			std::string passError = ":localhost 451 * :You have not registered\n";
-			if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
-				std::perror("Error : Failed to send password error message\n");
-		}
-		else
-		{
+		// if (client->getPassCheck() == false)
+		// {
+		// 	std::string passError = ":localhost 451 * :You have not registered\n";
+		// 	if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
+		// 		std::perror("Error : Failed to send password error message\n");
+		// }
+		// else
+		// {
 			client->setUsername(parsedCommand[1]);
-			std::string userOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
-			if (send(client->getSocket(), userOk.c_str(), userOk.length(), MSG_NOSIGNAL) == -1)
-				std::perror("Error : Failed to send user ok message\n");
+			// std::string userOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
+			// if (send(client->getSocket(), userOk.c_str(), userOk.length(), MSG_NOSIGNAL) == -1)
+			// 	std::perror("Error : Failed to send user ok message\n");
 		}
-	}
+	// }
 }
 
 void	Command::doNothing(Client *Client, vector<string> &cmd)
