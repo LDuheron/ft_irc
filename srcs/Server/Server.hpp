@@ -25,6 +25,7 @@
 
 # define DEBUG 0
 # define DEBUG2 0
+# define DEBUG_CMD 0
 
 # define MAX_CLIENTS 10
 # define MAX_MESSAGE_LENGTH 512

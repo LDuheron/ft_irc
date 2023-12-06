@@ -1,7 +1,9 @@
 #include "Command.hpp"
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <ios>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -16,8 +18,8 @@ Command::Command()
 	registerCommand("CAP END", sendPASSMessage);
 	registerCommand("PASS", checkPassword);
 	registerCommand("PING", handlePing);
-	// registerCommand("NICK", handleNick);
-	// registerCommand("USER", handleUser);
+	registerCommand("NICK", handleNick);
+	registerCommand("USER", handleUser);
 
 	// //display map for debugging
 	// for (std::map<string, CommandFunction>::iterator it = this->_commandMap.begin(); it != this->_commandMap.end(); ++it)
@@ -38,171 +40,86 @@ void			Command::registerCommand(const std::string &command, CommandFunction func
 	this->_commandMap[command] = function;
 }
 
+vector<string> splitString(const string &command, const string &delimiter)
+{
+	vector<string> result;
+
+	size_t	pos = 0;
+	size_t	end = command.find(delimiter);
+
+	while (end != std::string::npos)
+	{
+		result.push_back(command.substr(pos, end - pos));
+		pos = end + delimiter.size();
+		end = command.find(delimiter, pos);
+	}
+	if (pos < command.size())
+		result.push_back(command.substr(pos, end - pos));
+	return (result);
+}
+
 vector<vector<string>>	Command::parseLine(const std::string &command)
 {
 	vector<vector<string>>	parsedLines;
-	vector<string>			line;
-	std::istringstream		iss(command);
-	std::string				token;
-
-	while (iss >> std::skipws >> token)
+	vector<string>			line = splitString(command, "\r\n");
+	while (!line.empty())
 	{
-		while (!token.empty() && (token.back() == '\r' || token.back() == '\n'))
-			token.pop_back();
-	}
+		std::istringstream	iss(line[0]);
+		std::string			token;
+		vector<string>		parsedCommand;
 
-	if (!token.empty())
-		line.push_back(token);
-	else
-	{
-		if (!token.empty())
+		while (iss >> token)
+			parsedCommand.push_back(token);
+		if (!parsedCommand.empty() && parsedCommand[0] == "CAP")
 		{
-			parsedLines.push_back(line);
-			line.clear();
+			parsedCommand[1] = "CAP " + parsedCommand[1];
+			parsedCommand.erase(parsedCommand.begin());
 		}
+		parsedLines.push_back(parsedCommand);
+		line.erase(line.begin());
 	}
-	if (!line.empty())
-		parsedLines.push_back(line);
+	std::cout << "\n===== Parsed Line =====\n";
 	for(std::vector<std::vector<std::string>>::iterator it = parsedLines.begin(); it != parsedLines.end(); ++it)
 	{
 		for (std::vector<std::string>::iterator it2 = it->begin(); it2 != it->end(); ++it2)
 			std::cout << *it2 << "|";
 		std::cout << "\n";
 	}
+	std::cout << "=======================\n\n";
 	return (parsedLines);
 }
-	// while (std::getline(iss, line, '\r' ))
-	// {
-	// 	if (line.empty())
-	// 		continue;
-	// 	if (!line.empty() && line.back() == '\n')
-	// 		line.pop_back();
-	// }
-
-	// vector<string>		singleLine;
-	// std::istringstream	lineStream(line);
-	// string				token;
-
-	// while (lineStream >> token)
-	// 	singleLine.push_back(token);
-
-	// parsedLines.push_back(singleLine);
-	// for (std::vector<std::string>::iterator it = singleLine.begin(); it != singleLine.end(); ++it)
-	// 	std::cout << *it << "|";
-	// return (parsedLines);
-// }
-
-	// while (iss >> token)
-	// {
-	// 	if (!token.empty())
-	// 	{
-	// 		// if (token.size() > 1 && token[token.size() - 1] == '\r')// && token[token.size() - 1] == '\n')
-	// 		if (strchr(token.c_str(), '\r') != NULL)
-	// 		{
-	// 			std::cout << "BORDELLLLLLLLLLLLLLLLLLLLLLLLLLLLL\n";
-	// 			// token.pop_back();
-	// 			// token.pop_back();
-	// 			singleLine.push_back(token);
-	// 			parsedLines.push_back(singleLine);
-	// 			std::cout << "Single line: ";
-	// 			for (std::vector<std::string>::iterator it = singleLine.begin(); it != singleLine.end(); ++it)
-	// 				std::cout << *it << "|";
-	// 			singleLine.clear();
-	// 		}
-	// 		else
-	// 			singleLine.push_back(token);
-	// 		std::cout << "----- Token: -----" << token << "\n";
-	// 		for (std::vector<std::string>::iterator it = singleLine.begin(); it != singleLine.end(); ++it)
-	// 			std::cout << *it << "|";
-	// 		std::cout << "\n------------------\n";
-	// 	}
-	// }
-
-
-
-
-
-
-	// Merge CAP and LS into single token
-	// for(std::vector<std::vector<std::string>>::iterator it = parsedLines.begin(); it != parsedLines.end(); ++it)
-	// {
-	// 	if (it->size() > 1 && (*it)[0] == "CAP")
-	// 	{
-	// 		(*it)[1] = "CAP " + (*it)[1];
-	// 		it->erase(it->begin());
-	// 	}
-	// }
-
-
-
-	// if (parsedLines[0] == "CAP")
-	// {
-	// 	parsedLines[1] = "CAP " + parsedLines[1];
-	// 	parsedLines.erase(parsedLines.begin());
-	// }
-
-// 	std::cout << "===== parseLine : =====\n";
-// 	for (std::vector<std::vector<std::string>>::iterator it = parsedLines.begin(); it != parsedLines.end(); ++it)
-// 	{
-// 		for (std::vector<std::string>::iterator it2 = it->begin(); it2 != it->end(); ++it2)
-// 			std::cout << *it2 << "|";
-// 		std::cout << "\n";
-// 	}
-// 	std::cout << "\n============================\n";
-// 	return (parsedLines);
-// }
-
-// vector<string>	Command::parseCommand(vector<string> &parsedLines)
-// {
-// 	vector<string>		parsedCommand;
-// 	string				token;
-
-
-
-// 	// while (iss >> token)
-// 	// 	parsedCommand.push_back(token);
-// 	// if (!parsedCommand.empty() && parsedCommand[0] == "CAP")
-// 	// {
-// 	// 	parsedCommand[1] = "CAP " + parsedCommand[1];
-// 	// 	parsedCommand.erase(parsedCommand.begin());
-// 	// }
-// 	std::cout << "----- parseCommand : ------\n";
-// 	for (std::vector<std::string>::iterator it = parsedCommand.begin(); it != parsedCommand.end(); ++it)
-// 		std::cout << *it << "|";
-// 	std::cout << "\n---------------------------\n";
-// 	parsedLines.erase(parsedLines.begin());
-// 	return (parsedCommand);
-// }
 
 void	Command::handleCommand(Client *client, const string &message)
 {
 	vector<vector<string>>	parsedLines = Command::parseLine(message);
-	int i = -1;
 
 	while (!parsedLines.empty())
 	{
-		vector<string>	parsedCommand = parsedLines[++i];
-		const std::string &command = parsedCommand[0];
-		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(command);
+		vector<string>	&parsedCommand = parsedLines[0];
+		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(parsedCommand[0]);
 		if (it != this->_commandMap.end())
 		{
-			std::cout << "Command handled:" << command << "\n";
-			this->_commandMap[command](client, parsedCommand);
+			if (DEBUG_CMD)
+			{
+				std::cout << "---------------------\n";
+				std::cout << "Command handled:" << parsedCommand[0] << "\n";
+				std::cout << "---------------------\n";
+			}
+			this->_commandMap[parsedCommand[0]](client, parsedCommand);
 		}
-
 		else
-			std::cerr <<"Error: Unknown command: " << command << "\n";
+			std::cerr <<"Error: Unknown command: " << parsedCommand[0] << "\n";
+		parsedLines.erase(parsedLines.begin());
 	}
 
 }
 
 void	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 {
+	(void)parsedCommand;
 	std::string capLs = ":DEFAULT CAP * LS :none\n";
 	if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send CAP LS\n");
-	parsedCommand.erase(parsedCommand.begin());
-	std::cout << "CAP LS sent\n";
 }
 
 void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
@@ -221,8 +138,6 @@ void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 			std::perror("Error : Failed to send 003.\n");
 		if (send(client->getSocket(), welcome4.c_str(), welcome4.length(), MSG_NOSIGNAL) == -1)
 			std::perror("Error : Failed to send 004.\n");
-
-	std::cout << "RPL messages sent\n";
 }
 
 void	Command::sendPASSMessage(Client *client, vector<string> &parsedCommand)
@@ -231,8 +146,6 @@ void	Command::sendPASSMessage(Client *client, vector<string> &parsedCommand)
 	std::string pass = "Password required. Try /quote PASS <password>\n";
 	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send PASS message\n");
-
-	std::cout << "PASS message sent\n";
 }
 
 void	Command::checkPassword(Client *client, vector<string> &parsedCommand)
@@ -248,18 +161,15 @@ void	Command::checkPassword(Client *client, vector<string> &parsedCommand)
 	else
 		if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
 			std::perror("Error : Failed to send password error message\n");
-	parsedCommand.erase(parsedCommand.begin(), parsedCommand.begin() + 1);
 }
 
 void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 {
 	std::string pingData;
 
-	parsedCommand.erase(parsedCommand.begin());
 	while (!parsedCommand.empty())
 	{
-		pingData += parsedCommand[0] + " ";
-		parsedCommand.erase(parsedCommand.begin());
+		pingData += parsedCommand[1] + " ";
 	}
 	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
 	if (send(client->getSocket(), pongResponse.c_str(), pongResponse.length(), 0) == -1)
@@ -288,11 +198,6 @@ void	Command::handleNick(Client *client, vector<string> &parsedCommand)
 				std::perror("Error : Failed to send nickname error message\n");
 		}
 	}
-	parsedCommand.erase(parsedCommand.begin(), parsedCommand.begin() + 1);
-		std::cout << "----- handleNick : ------\n";
-	for (std::vector<std::string>::iterator it = parsedCommand.begin(); it != parsedCommand.end(); ++it)
-		std::cout << *it << "|";
-	std::cout << "\n---------------------------\n";
 }
 
 void	Command::handleUser(Client *client, vector<string> &parsedCommand)
@@ -319,7 +224,6 @@ void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 				std::perror("Error : Failed to send user ok message\n");
 		}
 	}
-	parsedCommand.erase(parsedCommand.begin(), parsedCommand.begin() + 1);
 }
 
 // vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
