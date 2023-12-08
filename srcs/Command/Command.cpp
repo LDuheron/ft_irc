@@ -20,7 +20,6 @@ Command::Command()
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
 
-
 	registerCommand("QUIT", doNothing);
 	registerCommand("WHOIS", doNothing);
 	registerCommand("MODE", doNothing);
@@ -45,26 +44,27 @@ vector<string> splitString(Client *client, const string &command, const string &
 {
 	vector<string> result;
 
+	string commandCopy = command;
+
+	if (client->getIncomplete())
+		commandCopy = client->getIncompleteMessage() + command;
+
 	size_t	pos = 0;
-	size_t	end = command.find(delimiter);
+	size_t	end = commandCopy.find(delimiter);
 
 	while (end != std::string::npos)
 	{
-		result.push_back(command.substr(pos, end - pos));
+		result.push_back(commandCopy.substr(pos, end - pos));
 		pos = end + delimiter.size();
-		end = command.find(delimiter, pos);
+		end = commandCopy.find(delimiter, pos);
 	}
-	if (pos < command.size())
+	if (pos < commandCopy.size())
 	{
-		result.push_back(command.substr(pos, end - pos));
 		client->setIncomplete(true);
-		std::cout << "Incomplete message received from client.\n";
+		client->setIncompleteMessage(commandCopy.substr(pos, end - pos));
 	}
 	else
-	{
 		client->setIncomplete(false);
-		std::cout << "Complete message received from client.\n";
-	}
 	return (result);
 }
 
@@ -160,6 +160,8 @@ void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 
 void	Command::sendPASSMessage(Client *client)
 {
+	if (client->getPassCheck() == true)
+		return;
 	Command::sendNewLine(client);
 	std::string pass = "Password required.\nTry /quote PASS <password>\n";
 	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
@@ -193,6 +195,12 @@ void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 		std::cerr << "Error : Failed to send pong.\n";
 }
 
+// ERR_NONICKNAMEGIVEN 			OK
+// ERR_ERRONEUSNICKNAME			X
+// ERR_NICKNAMEINUSE			X
+// ERR_NICKCOLLISION			X
+// ERR_UNAVAILRESOURCE			X
+// ERR_RESTRICTED				X
 void	Command::handleNick(Client *client, vector<string> &parsedCommand)
 {
 	if (parsedCommand.size() < 2)

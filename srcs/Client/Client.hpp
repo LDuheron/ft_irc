@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
@@ -19,6 +20,7 @@ class Client
 		struct epoll_event	_event;
 		Server				*_server;
 		bool				_incomplete; //add to message class
+		std::string			_incompleteMessage; //add to message class
 		bool				_capLSsent;
 
 
@@ -28,6 +30,8 @@ class Client
 
 		void				setIncomplete(bool);
 		bool				getIncomplete(void) const;
+		void				setIncompleteMessage(const std::string &);
+		const std::string	&getIncompleteMessage(void) const;
 		void				setCapLSsent(bool);
 		bool				getCapLSsent(void) const;
 

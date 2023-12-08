@@ -36,7 +36,11 @@ bool				Client::getIncomplete(void) const { return (this->_incomplete); }
 
 void				Client::setCapLSsent(bool capLSsent) { this->_capLSsent = capLSsent; }
 
-bool				Client::getCapLSsent(void) const { return (this->_capLSsent); }
+bool				Client::getCapLSsent(void) const { return (this->_capLSsent); }\
+
+void				Client::setIncompleteMessage(const std::string & incompleteMessage) { this->_incompleteMessage = incompleteMessage; }
+
+const std::string	&Client::getIncompleteMessage(void) const { return (this->_incompleteMessage); }
 
 
 

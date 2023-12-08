@@ -183,7 +183,6 @@ void		Server::handleNewClient(void)
 	Client *newClient = getClient(clientSocket, this, this->_clientMap, this->_nbClients);
 
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
-	Command::sendPASSMessage(newClient);
 }
 
 void		Server::loop(void)
