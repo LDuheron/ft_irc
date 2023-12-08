@@ -2,4 +2,4 @@ ircserv
 objs/
 build/
 Makefile.old
-.vscode
+.vscode/

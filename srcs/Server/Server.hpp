@@ -25,9 +25,12 @@
 
 # define DEBUG 0
 # define DEBUG2 0
+# define DEBUG_CMD 0
 
 # define MAX_CLIENTS 10
 # define MAX_MESSAGE_LENGTH 512
+
+# define DELIMITER "\n" // delimiter should be \r\n but in the test with nc (cf subject) they use \n only
 
 class Channel;
 class Client;
@@ -82,7 +85,7 @@ public:
 						//Gestion des messages reçus
 	void				handleClientEvent(Client *);
 						//Gestion du message reçu par un client spécifique
-	void				processIncomingData(Client *, const string);
+	// void				processIncomingData(Client *, const string);
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const &);

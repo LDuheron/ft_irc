@@ -7,10 +7,14 @@ Client::Client(int socket, Server *server) :
 	_clientSocket(socket),
 	_nickname("DEFAULT"),
 	_username("DEFAULT"),
+	_hostname("DEFAULT"),
+	_realname("DEFAULT"),
 	_nickCheck(false),
 	_passCheck(false),
 	_event(),
-	_server(server)
+	_server(server),
+	_incomplete(false),
+	_capLSsent(false)
 {
 	setEvent();
 	if (DEBUG)
@@ -26,6 +30,16 @@ Client::~Client(void)
 }
 // Accessors -------------------------------------------------------------------
 
+void				Client::setIncomplete(bool incomplete) { this->_incomplete = incomplete; }
+
+bool				Client::getIncomplete(void) const { return (this->_incomplete); }
+
+void				Client::setCapLSsent(bool capLSsent) { this->_capLSsent = capLSsent; }
+
+bool				Client::getCapLSsent(void) const { return (this->_capLSsent); }
+
+
+
 void				Client::setSocket(int fd) { this->_clientSocket = fd; }
 
 int					Client::getSocket(void) const { return (this->_clientSocket); }
@@ -37,6 +51,14 @@ void 				Client::setNickname(const std::string & nickname) { this->_nickname = n
 const std::string	&Client::getUsername(void) const { return (this->_username); }
 
 void 				Client::setUsername(const std::string & username) { this->_username = username; }
+
+const std::string	&Client::getHostname(void) const { return (this->_hostname); }
+
+void 				Client::setHostname(const std::string & hostname) { this->_hostname = hostname; }
+
+const std::string	&Client::getRealname(void) const { return (this->_realname); }
+
+void 				Client::setRealname(const std::string & realname) { this->_realname = realname; }
 
 bool				Client::getNickCheck(void) const { return (this->_nickCheck); }
 
