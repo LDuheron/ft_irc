@@ -16,7 +16,8 @@ Server::Server(int port, std::string password) :
 	_serverEvent(),
 	_serverAddr(),
 	_clientMap(),
-	_command(new Command())
+	_command(new Command()),
+	_shutdown(false)
 {}
 
 // Destructor ------------------------------------------------------------------
@@ -25,6 +26,7 @@ Server::~Server()
 {
 	for (std::map<int, Client *>::iterator it = this->_clientMap.begin(); it != this->_clientMap.end(); ++it)
 		delete it->second;
+	delete this->_command;
 }
 
 // Accessors -------------------------------------------------------------------
@@ -41,10 +43,14 @@ void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
 std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
 
+void							Server::setShutdown(bool shutdown) { this->_shutdown = shutdown; }
+
+
+
 void		Server::start(void)
 {
 	init_server();
-	while (1)
+	while (this->_shutdown == false)
 		loop();
 }
 
@@ -183,6 +189,7 @@ void		Server::handleNewClient(void)
 	Client *newClient = getClient(clientSocket, this, this->_clientMap, this->_nbClients);
 
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
+	Command::sendPASSMessage(newClient);
 }
 
 void		Server::loop(void)
@@ -241,7 +248,8 @@ void		Server::handleClientEvent(Client *client)
 	else
 	{
 		buffer[bytesRead] = '\0';
-		this->_command->handleCommand(client, buffer);
+		this->_command->execCmds(client, buffer);
+		// this->_command->handleCommand(client, buffer);
 		// processIncomingData(client, buffer);
 	}
 }

@@ -53,6 +53,7 @@ private:
 	struct	sockaddr_in 	_serverAddr;
 	std::map<int, Client *>	_clientMap;
 	Command					*_command;
+	bool					_shutdown;
 
 public:
 	Server();
@@ -65,6 +66,7 @@ public:
 	int const 						&getPort(void) const;
 	int const 						&getSocket(void) const;
 	std::map<int, Client *> const	&getClientMap(void) const;
+	void							setShutdown(bool);
 
 	void				start();
 

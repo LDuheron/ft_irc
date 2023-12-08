@@ -23,9 +23,11 @@ class Command
 		~Command();
 
 		void 							registerCommand(const string &, CommandFunction);
-		static vector<vector<string>>	parseLine(Client *, const string &);
+		// static vector<vector<string>>	parseLine(Client *, const string &);
+		void							execCmds(Client *, const string &);
+		void							exec(Client *, vector<string> &);
 		// static vector<string>			parseCommand(vector<string> &);
-		void							handleCommand(Client *client, const string &);
+		// void							handleCommand(Client *client, const string &);
 		static void						sendPASSMessage(Client *);
 
 		static void				sendCAPLs(Client *, vector<string> &);
@@ -35,6 +37,8 @@ class Command
 		static void				handleUser(Client *, vector<string> &);
 		static void				handlePing(Client *, vector<string> &);
 		static void				doNothing(Client *, vector<string> &);
+		static void				shutdown(Client *, vector<string> &);
+		
 		static void				sendNewLine(Client *);
 
 		// static void						handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels);

@@ -20,11 +20,18 @@ Command::Command()
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
 
+	registerCommand("SHUTDOWN", shutdown);
+
 	registerCommand("QUIT", doNothing);
 	registerCommand("WHOIS", doNothing);
 	registerCommand("MODE", doNothing);
 
 	// registerCommand("JOIN", handleJoin);
+}
+
+Command::~Command()
+{
+	this->_commandMap.clear();
 }
 
 // Destructor ------------------------------------------------------------------
@@ -68,9 +75,28 @@ vector<string> splitString(Client *client, const string &command, const string &
 	return (result);
 }
 
-vector<vector<string>>	Command::parseLine(Client *client, const std::string &command)
+void		Command::exec(Client *client, vector<string> &parsedCommand)
 {
-	vector<vector<string>>	parsedLines;
+	if (parsedCommand.empty())
+		return;
+	std::map<string, CommandFunction>::iterator it = this->_commandMap.find(parsedCommand[0]);
+	std::cout << "Command: " << parsedCommand[0] << "\n";
+	if (it != this->_commandMap.end())
+	{
+		// if (DEBUG_CMD)
+		// {
+		// 	std::cout << "---------------------\n";
+		// 	std::cout << "Command handled:" << parsedCommand[0] << "\n";
+		// 	std::cout << "---------------------\n";
+		// }
+		this->_commandMap[parsedCommand[0]](client, parsedCommand);
+	}
+	else
+		std::cerr <<"Error: Unknown command: " << parsedCommand[0] << "\n";
+}
+
+void	Command::execCmds(Client *client, const std::string &command)
+{
 	vector<string>			line = splitString(client, command, DELIMITER);
 	while (!line.empty())
 	{
@@ -85,41 +111,12 @@ vector<vector<string>>	Command::parseLine(Client *client, const std::string &com
 			parsedCommand[1] = "CAP " + parsedCommand[1];
 			parsedCommand.erase(parsedCommand.begin());
 		}
-		parsedLines.push_back(parsedCommand);
+		std::cout << "\n===== Data received from client : =====\n";
+		for (std::vector<std::string>::iterator it2 = parsedCommand.begin(); it2 != parsedCommand.end(); ++it2)
+			std::cout << *it2 << "|";
+		std::cout << "\n=======================================\n\n";
+		exec(client, parsedCommand);
 		line.erase(line.begin());
-	}
-	std::cout << "\n===== Data received from client : =====\n";
-	for(std::vector<std::vector<std::string>>::iterator it = parsedLines.begin(); it != parsedLines.end(); ++it)
-	{
-		for (std::vector<std::string>::iterator it2 = it->begin(); it2 != it->end(); ++it2)
-			std::cout << *it2 << " ";
-		std::cout << "\n";
-	}
-	std::cout << "=======================================\n\n";
-	return (parsedLines);
-}
-
-void	Command::handleCommand(Client *client, const string &message)
-{
-	vector<vector<string>>	parsedLines = Command::parseLine(client, message);
-
-	while (!parsedLines.empty())
-	{
-		vector<string>	&parsedCommand = parsedLines[0];
-		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(parsedCommand[0]);
-		if (it != this->_commandMap.end())
-		{
-			if (DEBUG_CMD)
-			{
-				std::cout << "---------------------\n";
-				std::cout << "Command handled:" << parsedCommand[0] << "\n";
-				std::cout << "---------------------\n";
-			}
-			this->_commandMap[parsedCommand[0]](client, parsedCommand);
-		}
-		else
-			std::cerr <<"Error: Unknown command: " << parsedCommand[0] << "\n";
-		parsedLines.erase(parsedLines.begin());
 	}
 
 }
@@ -177,6 +174,7 @@ void	Command::checkPassword(Client *client, vector<string> &parsedCommand)
 	if (client->getPassCheck() == false && parsedCommand[1] == client->getServer()->getPassword())
 	{
 		client->setPassCheck();
+
 		sendRPLMessages(client, parsedCommand);
 	}
 	else
@@ -203,7 +201,13 @@ void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 // ERR_RESTRICTED				X
 void	Command::handleNick(Client *client, vector<string> &parsedCommand)
 {
-	if (parsedCommand.size() < 2)
+	if (client->getPassCheck() == false)
+	{
+		std::string passError = ":localhost 451 * :You have not registered\n";
+		if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send password error message\n");
+	}
+	else if (parsedCommand.size() < 2)
 	{
 		std::string nickError = ":localhost 431 * :No nickname given\n";
 		if (send(client->getSocket(), nickError.c_str(), nickError.length(), MSG_NOSIGNAL) == -1)
@@ -257,6 +261,12 @@ void	Command::doNothing(Client *Client, vector<string> &cmd)
 {
 	(void)Client;
 	(void)cmd;
+}
+
+void	Command::shutdown(Client *client, vector<string> &cmd)
+{
+	(void)cmd;
+	client->getServer()->setShutdown(true);
 }
 
 void	Command::sendNewLine(Client *client)
