@@ -69,6 +69,8 @@ class Channel
 		void				inviteMember(Client *client);
 		void				uninviteMember(Client *client);
 
+		int					isBanned(Client *client);
+		int					isMember(Client *client);
 		int					isOperator(Client *client);
 		int					isInvited(Client *client);
 

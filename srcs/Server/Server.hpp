@@ -23,6 +23,16 @@
 # include "../Channel/Channel.hpp"
 # include "../Command/Command.hpp"
 
+
+#define RESET   "\033[0m"
+#define RED     "\033[31m"      // Red
+#define GREEN   "\033[32m"      // Green
+#define YELLOW  "\033[33m"      // Yellow
+#define BLUE    "\033[34m"      // Blue
+#define MAGENTA "\033[35m"      // Magenta
+#define CYAN    "\033[36m"      // Cyan
+#define WHITE   "\033[37m"  
+
 # define DEBUG 0
 # define DEBUG2 0
 # define DEBUG_CMD 0
@@ -43,7 +53,7 @@ class Server
 {
 private:
 	// add something for all the channel
-	std::vector<Channel *>	_allChannel; ///////////
+	std::vector<Channel *>	_allChannels; ///////////
 
 	int						_IP;
 	int						_epollSocket;
@@ -68,6 +78,7 @@ public:
 	int const 						&getPort(void) const;
 	int const 						&getSocket(void) const;
 	std::map<int, Client *> const	&getClientMap(void) const;
+	std::vector<Channel *> const 	&getAllChannels(void) const;
 
 	void				start();
 

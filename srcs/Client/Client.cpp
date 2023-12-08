@@ -95,22 +95,3 @@ Client &	Client::operator=(Client const & rhs)
 
 // Functions -------------------------------------------------------------------
 
-int Client::isMemberOfChannel(std::string str)
-{
-	for (std::vector<Channel *>::const_iterator it = this->_isChannelMember.begin(); it != this->_isChannelMember.end(); it++)
-	{
-		if ((*it)->getName() == str)
-			return (TRUE);
-	}
-	return (FALSE);
-}
-
-int Client::isBannedOfChannel(std::string str)
-{
-	for (std::vector<Channel *>::const_iterator it = this->_isBannedFromChannel.begin(); it != this->_isBannedFromChannel.end(); it++)
-	{
-		if ((*it)->getName() == str)
-			return (TRUE);
-	}
-	return (FALSE);
-}

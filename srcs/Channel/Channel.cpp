@@ -174,6 +174,36 @@ void	Channel::uninviteMember(Client *client)
 	}
 }
 
+//// is something
+
+int	Channel::isBanned(Client *client)
+{
+	for (int i = 0; i < (int)this->_banned.size(); i++)
+	{
+		if (this->_banned[i] == client)
+		{
+			this->_banned.erase(_banned.begin() + i);
+			std::cout << "Client is invited.\n";
+			return (TRUE);
+		}
+	}
+	return (FALSE);
+}
+
+int	Channel::isMember(Client *client)
+{
+	for (int i = 0; i < (int)this->_members.size(); i++)
+	{
+		if (this->_members[i] == client)
+		{
+			this->_members.erase(_members.begin() + i);
+			std::cout << "Client is invited.\n";
+			return (TRUE);
+		}
+	}
+	return (FALSE);
+}
+
 int	Channel::isInvited(Client *client)
 {
 	for (int i = 0; i < (int)this->_operator.size(); i++)

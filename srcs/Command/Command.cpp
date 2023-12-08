@@ -20,10 +20,11 @@ Command::Command()
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
 
-
 	registerCommand("QUIT", doNothing);
 	registerCommand("WHOIS", doNothing);
 	registerCommand("MODE", doNothing);
+
+	registerCommand("PRIVMSG", handlePrivmsg);
 
 	// registerCommand("JOIN", handleJoin);
 }
@@ -72,6 +73,7 @@ vector<vector<string>>	Command::parseLine(Client *client, const std::string &com
 {
 	vector<vector<string>>	parsedLines;
 	vector<string>			line = splitString(client, command, DELIMITER);
+	std::cout << MAGENTA << "DEBUG ENTER IN PARSED LINE\n" << RESET;
 	while (!line.empty())
 	{
 		std::istringstream	iss(line[0]);
@@ -105,9 +107,8 @@ void	Command::handleCommand(Client *client, const string &message)
 
 	while (!parsedLines.empty())
 	{
-		vector<string>	parsedCommand = Command::parseCommand(parsedLines);
-		const std::string &command = parsedCommand[0];
-		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(command);
+		vector<string>	&parsedCommand = parsedLines[0];
+		std::map<string, CommandFunction>::iterator it = this->_commandMap.find(parsedCommand[0]);
 		if (it != this->_commandMap.end())
 		{
 			if (DEBUG_CMD)
@@ -124,6 +125,7 @@ void	Command::handleCommand(Client *client, const string &message)
 	}
 
 }
+
 
 void	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 {
@@ -260,6 +262,49 @@ void	Command::sendNewLine(Client *client)
 	if (send(client->getSocket(), newLine.c_str(), newLine.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send new line\n");
 }
+
+void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
+{
+
+	// if (parsedCommand.size() < 3)
+	//	{
+	// 		std::cout << "Error: Insufficient parameters for PRIVMSG command.\n";
+    //		return;
+	// }
+	// if (parsedCommand[1].size < 0 || parsedCommand[2].size < 0)
+		// std::cout << pb ! << std::endl;
+
+	std::string destinataire;
+
+	Server *serv = client->getServer();
+
+	for (std::vector<Channel *>::const_iterator itChan = serv->getAllChannels().begin(); itChan != serv->getAllChannels().end(); itChan++)
+	{
+		if ((*itChan)->getName() == parsedCommand[1])
+		{
+			if ((*itChan)->isMember(client))
+				destinataire = parsedCommand[1];
+			break;
+		}
+	}
+	if (!destinataire.empty())
+	{
+		for (std::map<int, Client *>::const_iterator itClient = serv->getClientMap().begin(); itClient != serv->getClientMap().end(); itClient++)
+		{
+			if (itClient->second->getNickname() == parsedCommand[1])
+			{
+				destinataire = parsedCommand[1];
+				break ;
+			}
+		}
+	}
+	if (destinataire.empty())
+	{
+		std::string msg = "PRIVMSG " + parsedCommand[1] + " :" + parsedCommand[2] + "\r\n";
+		send(serv->getSocket(), msg.c_str(), msg.length(), 0);
+	}
+}
+
 // vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
 // {
 // 	std::string chanName = message.substr(6, message.size());
@@ -284,4 +329,3 @@ void	Command::sendNewLine(Client *client)
 // }
 
 // ajouter le channel 
-

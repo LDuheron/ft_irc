@@ -14,16 +14,13 @@ class Client
 		int						_clientSocket;
 		std::string				_nickname;
 		std::string				_username;
+		std::string				_hostname;
+		std::string				_realname;
 		bool					_nickCheck;
 		bool					_passCheck;
 		struct epoll_event		_event;
 		Server					*_server;
-		std::vector<Channel *>	_isChannelMember;
-		std::vector<Channel *>	_isBannedFromChannel;
 
-		std::string			_hostname;
-		std::string			_realname;
-	
 		bool				_incomplete; //add to message class
 		bool				_capLSsent;
 
@@ -55,9 +52,6 @@ class Client
 		void				setEvent();
 		struct epoll_event	*getEventAddress(void);
 		Server				*getServer(void) const;
-
-		int					isBannedOfChannel(std::string str);
-		int					isMemberOfChannel(std::string str);
 
 		Client &operator=(Client const & rhs);
 };

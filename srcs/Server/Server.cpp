@@ -43,6 +43,8 @@ void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
 std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
 
+std::vector<Channel *> const 	&Server::getAllChannels(void) const {return (this-> _allChannels);}
+
 void		Server::start(void)
 {
 	init_server();
@@ -246,11 +248,18 @@ void		Server::handleClientEvent(Client *client)
 
 	bytesRead = recv(client->getSocket(), buffer, MAX_MESSAGE_LENGTH, 0);
 	if (bytesRead < 0)
+	{
+		// std::cout << RED << "DEBUG : ENTER HANDLE CLIENT ERROR\n" << RESET; 
 		handleClientError(client);
+	}
 	else if (bytesRead == 0)
+	{
+		std::cout << YELLOW << "DEBUG : ENTER HANDLE CLIENT DISCONNECTION\n" << RESET; 
 		handleClientDisconnection(client);
+	}
 	else
 	{
+		std::cout << CYAN << "DEBUG ENTER HANDLE COMMAND\n" << RESET; 
 		buffer[bytesRead] = '\0';
 		this->_command->handleCommand(client, buffer);
 		// processIncomingData(client, buffer);
