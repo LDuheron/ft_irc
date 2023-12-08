@@ -5,11 +5,11 @@
 // Constructor -----------------------------------------------------------------
 
 Channel::Channel() :
-	_banned(),
 	_members(),
 	_operator(),
 	_invited(),
 	_hasPassword(FALSE),
+	_cptUser(0),
 	_maxUser(MAX_USER),
 	_password("NULL"),
 	_topic("NULL"),
@@ -47,6 +47,11 @@ void	Channel::setTopic(std::string const &topic)
 	this->_topic = topic;
 }
 
+const int &	Channel::getCptUser(void)
+{
+	return (this->_cptUser);
+}
+
 const int &	Channel::getMaxUser(void)
 {
 	return (this->_maxUser);
@@ -55,6 +60,22 @@ const int &	Channel::getMaxUser(void)
 void	Channel::setMaxUser(int const &maxUser)
 {
 	this->_maxUser = maxUser;
+}
+
+std::vector<Client *> const &Channel::getMembers() const
+{
+	return (this->_members);
+}
+
+
+const std::string &	Channel::getName(void)
+{
+	return (this->_name);
+}
+
+void	Channel::setName(std::string const &name)
+{
+	this->_name = name;
 }
 
 const int &	Channel::getType(void)
@@ -71,8 +92,6 @@ void	Channel::setType(int const &type)
 
 Channel &	Channel::operator=(Channel const & rhs)
 {
-	for (int i = 0; i < (int)rhs._banned.size(); i++)
-		this->_banned.push_back(rhs._banned[i]);
 	for (int i = 0; i < (int)rhs._members.size(); i++)
 		this->_members.push_back(rhs._members[i]);
 	for (int i = 0; i < (int)rhs._operator.size(); i++)
@@ -89,31 +108,17 @@ Channel &	Channel::operator=(Channel const & rhs)
 
 // Functions -------------------------------------------------------------------
 
-void	Channel::banMember(Client *client)
-{
-	this->_banned.push_back(client);
-	if (DEBUG)
-		std::cout << "Ban client successfully\n";
-}
-
-void	Channel::unbanMember(Client *client)
-{
-	for (int i = 0; i < (int)this->_banned.size(); i++)
-	{
-		if (this->_banned[i] == client)
-		{
-			this->_banned.erase(_banned.begin() + i);
-			std::cout << "Client succesfully banned.\n";
-			break ;
-		}
-	}
-}
-
 void	Channel::addMember(Client *client)
 {
-	this->_members.push_back(client);
-	if (DEBUG)
-		std::cout << "Add client successfully\n";
+	if (this->_cptUser < this->_maxUser)
+	{
+		this->_members.push_back(client);
+		this->_cptUser++;
+		if (DEBUG)
+			std::cout << "Add client successfully.\n";
+	}
+	else
+		std::cout << "Too much users on channel.\n";
 }
 
 void	Channel::removeMember(Client *client)
@@ -123,6 +128,21 @@ void	Channel::removeMember(Client *client)
 		if (this->_members[i] == client)
 		{
 			this->_members.erase(_members.begin() + i);
+			this->_cptUser--;
+			std::cout << "Client succesfully erased.\n";
+			break ;
+		}
+	}
+}
+
+void	Channel::removeMember(std::string client)
+{
+	for (std::vector<Client*>::const_iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
+	{
+		if ((*itClient)->getNickname() == client)
+		{
+			this->_members.erase(itClient);
+			this->_cptUser--;
 			std::cout << "Client succesfully erased.\n";
 			break ;
 		}
@@ -133,7 +153,7 @@ void	Channel::addOperator(Client *client)
 {
 	this->_members.push_back(client);
 	if (DEBUG)
-		std::cout << "Add client to operator successfully\n";
+		std::cout << "Add client to operator successfully.\n";
 }
 
 void	Channel::removeOperator(Client *client)
@@ -153,7 +173,7 @@ void	Channel::inviteMember(Client *client)
 {
 	this->_members.push_back(client);
 	if (DEBUG)
-		std::cout << "Invite client successfully\n";
+		std::cout << "Invite client successfully.\n";
 }
 
 void	Channel::uninviteMember(Client *client)
@@ -167,6 +187,20 @@ void	Channel::uninviteMember(Client *client)
 			break ;
 		}
 	}
+}
+
+int	Channel::isMember(Client *client)
+{
+	for (int i = 0; i < (int)this->_members.size(); i++)
+	{
+		if (this->_members[i] == client)
+		{
+			this->_members.erase(_members.begin() + i);
+			std::cout << "Client is invited.\n";
+			return (TRUE);
+		}
+	}
+	return (FALSE);
 }
 
 int	Channel::isInvited(Client *client)

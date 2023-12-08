@@ -18,6 +18,15 @@
 # include <sstream>
 # include <functional>
 
+#define RESET   "\033[0m"
+#define RED     "\033[31m"      // Red
+#define GREEN   "\033[32m"      // Green
+#define YELLOW  "\033[33m"      // Yellow
+#define BLUE    "\033[34m"      // Blue
+#define MAGENTA "\033[35m"      // Magenta
+#define CYAN    "\033[36m"      // Cyan
+#define WHITE   "\033[37m"  
+
 # include "../Client/Client.hpp"
 # include "../Message/Message.hpp"
 # include "../Channel/Channel.hpp"
@@ -53,6 +62,7 @@ private:
 	struct	sockaddr_in 	_serverAddr;
 	std::map<int, Client *>	_clientMap;
 	Command					*_command;
+	std::vector<Channel *>	_allChannels;
 
 public:
 	Server();
@@ -65,22 +75,28 @@ public:
 	int const 						&getPort(void) const;
 	int const 						&getSocket(void) const;
 	std::map<int, Client *> const	&getClientMap(void) const;
+	std::vector<Channel *> const 	&getAllChannels(void) const;
 
-	void				start();
 
-	void				setSocket(int);
+	/// function pour add les channels
 
-	void				init_serverAddr(void);
-	void				init_server(void);
-	void				loop(void);
+	void							start();
 
-	void				handleNewClient(void);
+	void							setSocket(int);
 
-	void				removeClient(Client *);
-	void				handleClientError(Client *);
-	void				handleClientDisconnection(Client *);
+	void							addChannel(Channel * newChannel);
+
+	void							init_serverAddr(void);
+	void							init_server(void);
+	void							loop(void);
+
+	void							handleNewClient(void);
+
+	void							removeClient(Client *);
+	void							handleClientError(Client *);
+	void							handleClientDisconnection(Client *);
 						//Gestion des messages reçus
-	void				handleClientEvent(Client *);
+	void							handleClientEvent(Client *);
 						//Gestion du message reçu par un client spécifique
 	// void				processIncomingData(Client *, const string);
 };

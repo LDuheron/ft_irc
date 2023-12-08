@@ -19,14 +19,14 @@ class Client;
 class Channel
 {
 	private:
-		std::vector<Client *>		_banned;
 		std::vector<Client *>		_members;
 		std::vector<Client *>		_operator;
 		std::vector<Client *>		_invited;
 
 		bool						_hasPassword;
-
+		int							_cptUser;
 		int							_maxUser;
+		std::string					_name;
 		std::string					_password;
 		std::string					_topic; // general description of the channel
 		int							_type; // regular #, local &
@@ -38,8 +38,15 @@ class Channel
 		Channel(Channel const & src);
 		~Channel();
 
+		std::vector<Client *> const &getMembers() const;
+
+		const int 			&getCptUser(void);
+
 		const int 			&getMaxUser(void);
 		void				setMaxUser(int const &maxUser);
+
+		const std::string	&getName(void);
+		void				setName(std::string const &name);
 
 		// const std::string	&getPassword(void);
 		void				setPassword(std::string const &password);
@@ -52,11 +59,9 @@ class Channel
 
 		Channel &			operator=(Channel const & rhs);
 
-		void				banMember(Client *client);
-		void				unbanMember(Client *client);
-
 		void				addMember(Client *client);
 		void				removeMember(Client *client);
+		void				removeMember(std::string client);
 
 		void				addOperator(Client *client);
 		void				removeOperator(Client *client);
@@ -64,6 +69,7 @@ class Channel
 		void				inviteMember(Client *client);
 		void				uninviteMember(Client *client);
 
+		int					isMember(Client *client);
 		int					isOperator(Client *client);
 		int					isInvited(Client *client);
 

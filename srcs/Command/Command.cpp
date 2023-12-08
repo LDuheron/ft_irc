@@ -24,6 +24,10 @@ Command::Command()
 	registerCommand("QUIT", doNothing);
 	registerCommand("WHOIS", doNothing);
 	registerCommand("MODE", doNothing);
+	
+	// registerCommand("PRIVMSG", doNothing);
+	registerCommand("PRIVMSG", handlePrivmsg);
+	registerCommand("KICK", handleKick);
 
 	// registerCommand("JOIN", handleJoin);
 }
@@ -258,7 +262,44 @@ void	Command::sendNewLine(Client *client)
 		std::perror("Error : Failed to send new line\n");
 }
 
-// vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
+void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
+{
+	/*
+	1) check si le channel existe
+	si existe ajouter au chan
+	
+	2) check si le chan existe, si n'exist epas le creer
+	ajouter u chan
+	*/
+
+	// 1
+	Server *serv = client->getServer();
+	for (std::vector<Channel *>::const_iterator itChan = serv->getAllChannels().begin(); itChan != serv->getAllChannels().end(); itChan++)
+	{
+		if ((*itChan)->getName() == parsedCommand[1])
+		{
+			if ((*itChan)->isMember(client) == false)
+			{
+				((*itChan)->addMember(client));
+				std::cout << MAGENTA << "Member joined succesfully !\n" << RESET;
+				((*itChan)->addOperator(client));
+				return ;
+			}
+		}
+	}
+
+	// 2
+	Channel	*newChannel = nullptr;
+
+	newChannel->addMember(client);
+	newChannel->addOperator(client);
+	// ranger dans channel +checker les modes
+	serv->addChannel(newChannel);
+
+
+}
+
+// void	Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
 // {
 // 	std::string chanName = message.substr(6, message.size());
 // 	std::cout << "Channel name " << chanName << "\n";
@@ -280,3 +321,54 @@ void	Command::sendNewLine(Client *client)
 // 		_channels.insert(std::make_pair(chanName, newChannel));
 // 	}
 // }
+
+void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
+{
+	Server *serv = client->getServer();
+
+	for (std::vector<Channel *>::const_iterator itChan = serv->getAllChannels().begin(); itChan != serv->getAllChannels().end(); itChan++)
+	{
+		if ((*itChan)->getName() == parsedCommand[1])
+		{
+			if ((*itChan)->isMember(client))
+			{
+				std::string msg = "PRIVMSG " + parsedCommand[1] + " :" + parsedCommand[2] + "\r\n";
+				for (std::vector<Client *>::const_iterator itMembers = (*itChan)->getMembers().begin(); itMembers != (*itChan)->getMembers().end(); itMembers++)
+				{
+					if (send((*itMembers)->getSocket(), msg.c_str(), msg.length(), 0) == -1)
+						std::cout << "ERROR\n"; //// TO COMPLETE
+				}
+			}
+			return ;
+		}
+	}
+	for (std::map<int, Client *>::const_iterator itClient = serv->getClientMap().begin(); itClient != serv->getClientMap().end(); itClient++)
+	{
+		if (itClient->second->getNickname() == parsedCommand[1])
+		{
+			std::string msg = "PRIVMSG " + parsedCommand[1] + " :" + parsedCommand[2] + "\r\n";
+			if (send(itClient->first, msg.c_str(), msg.length(), 0) == -1)
+				std::cout << "ERROR\n"; // //// TO COMPLETE
+			break ;
+		}
+	}
+}
+
+// KICK <channel> <user> :<reason>
+void				Command::handleKick(Client *client, vector<string> &parsedCommand)
+{
+	Server *serv = client->getServer();
+	for (std::vector<Channel *>::const_iterator itChan = serv->getAllChannels().begin(); itChan != serv->getAllChannels().end(); itChan++)
+	{
+		if ((*itChan)->getName() == parsedCommand[1])
+		{
+			if ((*itChan)->isMember(client))
+			{
+				((*itChan)->removeMember(client));
+				std::cout << "Kick member succesfully !\n";
+				// A COMPLETER Virer des operateurs aussi
+			}
+		}
+	}
+}
+

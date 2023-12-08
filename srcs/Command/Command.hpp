@@ -37,7 +37,10 @@ class Command
 		static void				doNothing(Client *, vector<string> &);
 		static void				sendNewLine(Client *);
 
-		// static void						handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels);
+		static void				handlePrivmsg(Client *client, vector<string> &parsedCommand);
+		static void				handleKick(Client *client, vector<string> &parsedCommand);
+
+		static void				handleJoin(Client *client, vector<string> &parsedCommand);
 };
 
 #endif

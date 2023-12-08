@@ -37,10 +37,12 @@ int const						&Server::getIP(void) const { return (this->_IP); }
 
 int const						&Server::getPort(void) const { return (this->_serverPort); }
 
+int const						&Server::getSocket(void) const { return (this->_serverSocket); }
+
 void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
 std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
-
+std::vector<Channel *> const 	&Server::getAllChannels(void) const {return (this->_allChannels);}
 void		Server::start(void)
 {
 	init_server();
@@ -252,3 +254,9 @@ void		Server::handleClientEvent(Client *client)
 // {
 // 	this->_command->handleCommand(client, message);
 // }
+
+
+void	Server::addChannel(Channel * newChannel)
+{
+	this->_allChannels.push_back(newChannel);
+}
