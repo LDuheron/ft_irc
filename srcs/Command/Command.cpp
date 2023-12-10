@@ -80,19 +80,43 @@ void		Command::exec(Client *client, vector<string> &parsedCommand)
 	if (parsedCommand.empty())
 		return;
 	std::map<string, CommandFunction>::iterator it = this->_commandMap.find(parsedCommand[0]);
-	std::cout << "Command: " << parsedCommand[0] << "\n";
-	if (it != this->_commandMap.end())
+	if (it == this->_commandMap.end())
 	{
-		// if (DEBUG_CMD)
-		// {
-		// 	std::cout << "---------------------\n";
-		// 	std::cout << "Command handled:" << parsedCommand[0] << "\n";
-		// 	std::cout << "---------------------\n";
-		// }
-		this->_commandMap[parsedCommand[0]](client, parsedCommand);
-	}
-	else
 		std::cerr <<"Error: Unknown command: " << parsedCommand[0] << "\n";
+		return;
+	}
+	if (client->getPassCheck() == false && parsedCommand[0] != "PASS" && parsedCommand[0] != "CAP LS" && parsedCommand[0] != "CAP END")
+	{
+		if (parsedCommand[0] != "NICK" && parsedCommand[0] != "USER")
+		{
+			std::string passError = ":" + client->getServer()->getNickname() + " 451 * :You have not registered (cmd:\n" + parsedCommand[0] + ")\n";
+			if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
+				std::perror("Error : Failed to send password error message");
+		}
+		if (!client->getAskPassword())
+		{
+			Command::sendPASSMessage(client);
+			client->setAskPassword(true);
+		}
+		if ((client->getNickCheck() == false && parsedCommand[0] == "NICK")
+			||( client->getUserCheck() == false && parsedCommand[0] == "USER"))
+		{
+			this->_commandBuffer.push_back(parsedCommand);
+			parsedCommand.clear();
+		}
+	}
+	else if (!parsedCommand.empty())
+	{
+		this->_commandMap[parsedCommand[0]](client, parsedCommand);
+		if (client->getPassCheck())
+		{
+			while (!this->_commandBuffer.empty())
+			{
+				this->_commandMap[this->_commandBuffer[0][0]](client, this->_commandBuffer[0]);
+				this->_commandBuffer.erase(this->_commandBuffer.begin());
+			}
+		}
+	}
 }
 
 void	Command::execCmds(Client *client, const std::string &command)
@@ -118,23 +142,15 @@ void	Command::execCmds(Client *client, const std::string &command)
 		exec(client, parsedCommand);
 		line.erase(line.begin());
 	}
-
 }
 
 void	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 {
 	(void)parsedCommand;
-	if (client->getPassCheck() == false)
-	{
-		client->setCapLSsent(true);
-		return;
-	}
-	else
-	{
+
 		std::string capLs = ":DEFAULT CAP * LS :none\n";
 		if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send CAP LS\n");
-	}
+			std::perror("Error : Failed to send CAP LS");
 }
 
 void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
@@ -146,13 +162,13 @@ void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 	std::string welcome4 = ":" + client->getServer()->getNickname() + " 004 " + client->getNickname() + client->getServer()->getNickname() + " ircd_version user_modes chan_modes\n";
 
 		if (send(client->getSocket(), welcome1.c_str(), welcome1.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send 001.\n");
+			std::perror("Error : Failed to send 001.");
 		if (send(client->getSocket(), welcome2.c_str(), welcome2.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send 002.\n");
+			std::perror("Error : Failed to send 002.");
 		if (send(client->getSocket(), welcome3.c_str(), welcome3.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send 003.\n");
+			std::perror("Error : Failed to send 003.");
 		if (send(client->getSocket(), welcome4.c_str(), welcome4.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send 004.\n");
+			std::perror("Error : Failed to send 004.");
 }
 
 void	Command::sendPASSMessage(Client *client)
@@ -162,35 +178,29 @@ void	Command::sendPASSMessage(Client *client)
 	Command::sendNewLine(client);
 	std::string pass = "Password required.\nTry /quote PASS <password>\n";
 	if (send(client->getSocket(), pass.c_str(), pass.length(), MSG_NOSIGNAL) == -1)
-		std::perror("Error : Failed to send PASS message\n");
+		std::perror("Error : Failed to send PASS message");
 	Command::sendNewLine(client);
 }
 
 void	Command::checkPassword(Client *client, vector<string> &parsedCommand)
 {
-	string	passError = ":localhost 464 * :Password incorrect\n";
-	string	passOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
+	string	passError = ":" + client->getServer()->getNickname() + " 464 * :Password incorrect\n";
 
 	if (client->getPassCheck() == false && parsedCommand[1] == client->getServer()->getPassword())
-	{
 		client->setPassCheck();
-
-		sendRPLMessages(client, parsedCommand);
-	}
 	else
 		if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send password error message\n");
+			std::perror("Error : Failed to send password error message");
 }
 
 void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 {
 	std::string pingData;
 
-	// while (!parsedCommand.empty())
 	pingData += parsedCommand[1] + " ";
-	std::string pongResponse = ":localhost PONG :" + pingData + "\n";
+	std::string pongResponse = ":" + client->getServer()->getNickname() + " PONG :" + pingData + "\n";
 	if (send(client->getSocket(), pongResponse.c_str(), pongResponse.length(), 0) == -1)
-		std::cerr << "Error : Failed to send pong.\n";
+		std::perror("Error : Failed to send pong");
 }
 
 // ERR_NONICKNAMEGIVEN 			OK
@@ -201,17 +211,11 @@ void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 // ERR_RESTRICTED				X
 void	Command::handleNick(Client *client, vector<string> &parsedCommand)
 {
-	if (client->getPassCheck() == false)
+	if (parsedCommand.size() < 2)
 	{
-		std::string passError = ":localhost 451 * :You have not registered\n";
-		if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send password error message\n");
-	}
-	else if (parsedCommand.size() < 2)
-	{
-		std::string nickError = ":localhost 431 * :No nickname given\n";
+		std::string nickError = ":" + client->getServer()->getNickname() + " 431 * :No nickname given\n";
 		if (send(client->getSocket(), nickError.c_str(), nickError.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send nickname error message\n");
+			std::perror("Error : Failed to send nickname error message");
 	}
 	else
 	{
@@ -219,42 +223,43 @@ void	Command::handleNick(Client *client, vector<string> &parsedCommand)
 		{
 			client->setNickname(parsedCommand[1]);
 			client->setNickCheck();
+			if (client->getUserCheck())
+				Command::sendRPLMessages(client, parsedCommand);
 		}
-		else
+		else //pas bon
 		{
-			std::string nickError = ":localhost 433 * " + parsedCommand[1] + " :Nickname is already in use\n";
+			std::string nickError = ":" + client->getServer()->getNickname() + " 433 * " + parsedCommand[1] + " :Nickname is already in use\n";
 			if (send(client->getSocket(), nickError.c_str(), nickError.length(), MSG_NOSIGNAL) == -1)
-				std::perror("Error : Failed to send nickname error message\n");
+				std::perror("Error : Failed to send nickname error message");
 		}
 	}
 }
 
 // ERR_NEEDMOREPARAMS			OK
-// ERR_ALREADYREGISTRED			X
+// ERR_ALREADYREGISTRED			OK
 void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 {
 	if (parsedCommand.size() < 5)
 	{
-		std::string userError = ":localhost 461 * USER :Not enough parameters\n";
+		std::string userError = ":" + client->getServer()->getNickname() + " 461 * USER :Not enough parameters\n";
 		if (send(client->getSocket(), userError.c_str(), userError.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send user error message\n");
+			std::perror("Error : Failed to send user error message");
+		return;
+	}
+	else if (client->getUserCheck())
+	{
+		std::string AlreadyRegistered = ":" + client->getServer()->getNickname() + " 462 * :Unauthorized command (already registered)\n";
+		if (send(client->getSocket(), AlreadyRegistered.c_str(), AlreadyRegistered.length(), MSG_NOSIGNAL) == -1)
+			std::perror("Error : Failed to send already registered error message");
+		return;
 	}
 	else
 	{
-		// if (client->getPassCheck() == false)
-		// {
-		// 	std::string passError = ":localhost 451 * :You have not registered\n";
-		// 	if (send(client->getSocket(), passError.c_str(), passError.length(), MSG_NOSIGNAL) == -1)
-		// 		std::perror("Error : Failed to send password error message\n");
-		// }
-		// else
-		// {
 			client->setUsername(parsedCommand[1]);
-			// std::string userOk = ":localhost 001 * :Welcome to the Internet Relay Network\n";
-			// if (send(client->getSocket(), userOk.c_str(), userOk.length(), MSG_NOSIGNAL) == -1)
-			// 	std::perror("Error : Failed to send user ok message\n");
-		}
-	// }
+			client->setUserCheck();
+			if (client->getNickCheck())
+				Command::sendRPLMessages(client, parsedCommand);
+	}
 }
 
 void	Command::doNothing(Client *Client, vector<string> &cmd)
@@ -273,7 +278,7 @@ void	Command::sendNewLine(Client *client)
 {
 	std::string newLine = " \n";
 	if (send(client->getSocket(), newLine.c_str(), newLine.length(), MSG_NOSIGNAL) == -1)
-		std::perror("Error : Failed to send new line\n");
+		std::perror("Error : Failed to send new line");
 }
 
 // vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)

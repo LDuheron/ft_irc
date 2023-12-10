@@ -189,7 +189,6 @@ void		Server::handleNewClient(void)
 	Client *newClient = getClient(clientSocket, this, this->_clientMap, this->_nbClients);
 
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
-	Command::sendPASSMessage(newClient);
 }
 
 void		Server::loop(void)
@@ -206,7 +205,7 @@ void		Server::loop(void)
 		if (currentSocket == this->_serverSocket)
 			handleNewClient();
 		else
-			handleClientEvent(this->_clientMap[currentSocket]);
+				handleClientEvent(this->_clientMap[currentSocket]);
 	}
 }
 
@@ -253,9 +252,3 @@ void		Server::handleClientEvent(Client *client)
 		// processIncomingData(client, buffer);
 	}
 }
-
-// Remove this function and put evertything in handleCommand ?
-// void		Server::processIncomingData(Client *client, const std::string message)
-// {
-// 	this->_command->handleCommand(client, message);
-// }

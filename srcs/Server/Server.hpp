@@ -83,8 +83,6 @@ public:
 	void				handleClientDisconnection(Client *);
 						//Gestion des messages reçus
 	void				handleClientEvent(Client *);
-						//Gestion du message reçu par un client spécifique
-	// void				processIncomingData(Client *, const string);
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const &);

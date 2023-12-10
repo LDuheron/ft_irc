@@ -1,5 +1,6 @@
 
 #include "Client.hpp"
+#include <vector>
 
 // Constructor -----------------------------------------------------------------
 
@@ -10,11 +11,13 @@ Client::Client(int socket, Server *server) :
 	_hostname("DEFAULT"),
 	_realname("DEFAULT"),
 	_nickCheck(false),
+	_userCheck(false),
 	_passCheck(false),
 	_event(),
 	_server(server),
 	_incomplete(false),
-	_capLSsent(false)
+	_capLSsent(false),
+	_askPassword(false)
 {
 	setEvent();
 	if (DEBUG)
@@ -68,6 +71,10 @@ bool				Client::getNickCheck(void) const { return (this->_nickCheck); }
 
 void				Client::setNickCheck(void) { this->_nickCheck = true; }
 
+bool				Client::getUserCheck(void) const { return (this->_userCheck); }
+
+void				Client::setUserCheck(void) { this->_userCheck = true; }
+
 bool				Client::getPassCheck(void) const { return (this->_passCheck); }
 
 void				Client::setPassCheck(void) { this->_passCheck = true; }
@@ -78,12 +85,14 @@ void				Client::setEvent()
 	this->_event.data.fd = this->_clientSocket;
 }
 
-struct epoll_event	*Client::getEventAddress(void)
-{
-	return (&this->_event);
-}
+struct epoll_event	*Client::getEventAddress(void) { return (&this->_event); }
 
 Server				*Client::getServer(void) const { return (this->_server); }
+
+
+bool				Client::getAskPassword(void) const { return (this->_askPassword); }
+
+void				Client::setAskPassword(bool askPassword) { this->_askPassword = askPassword; }
 
 // Overload --------------------------------------------------------------------
 
