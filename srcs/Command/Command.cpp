@@ -156,10 +156,10 @@ void	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 {
 	(void)parsedCommand;
-	std::string welcome1 = ":" + client->getServer()->getNickname() + " 001 " + client->getNickname() + " :Welcome to the Internet Relay Network " + client->getNickname() + "!" + client->getUsername() + "@" + client->getServer()->getNickname() + "\n";
+	std::string welcome1 = ":" + client->getServer()->getNickname() + " 001 " + client->getNickname() + ":Welcome to the Internet Relay Network " + client->getNickname() + "!" + client->getUsername() + "@" + client->getServer()->getNickname() + "\n";
 	std::string welcome2 = ":" + client->getServer()->getNickname() + " 002 " + client->getNickname() + ":Your host is " + client->getServer()->getNickname()+ ", running version 0.1\n";
 	std::string welcome3 = ":" + client->getServer()->getNickname() + " 003 " + client->getNickname() + ":This server was created 2023/11/20\n";
-	std::string welcome4 = ":" + client->getServer()->getNickname() + " 004 " + client->getNickname() + client->getServer()->getNickname() + " ircd_version user_modes chan_modes\n";
+	std::string welcome4 = ":" + client->getServer()->getNickname() + " 004 " + client->getNickname() + ":" + client->getServer()->getNickname() + " ircd_version user_modes chan_modes\n";
 
 	Server::sendMessage(client, welcome1);
 	Server::sendMessage(client, welcome2);
