@@ -83,6 +83,8 @@ public:
 	void				handleClientDisconnection(Client *);
 						//Gestion des messages reçus
 	void				handleClientEvent(Client *);
+
+	static void			sendMessage(Client *client, string &message);
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const &);

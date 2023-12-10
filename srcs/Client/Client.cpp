@@ -17,7 +17,8 @@ Client::Client(int socket, Server *server) :
 	_server(server),
 	_incomplete(false),
 	_capLSsent(false),
-	_askPassword(false)
+	_askPassword(false),
+	_isConnected(false)
 {
 	setEvent();
 	if (DEBUG)
@@ -93,6 +94,10 @@ Server				*Client::getServer(void) const { return (this->_server); }
 bool				Client::getAskPassword(void) const { return (this->_askPassword); }
 
 void				Client::setAskPassword(bool askPassword) { this->_askPassword = askPassword; }
+
+bool				Client::getIsConnected(void) const { return (this->_isConnected); }
+
+void				Client::setIsConnected(bool isConnected) { this->_isConnected = isConnected; }
 
 // Overload --------------------------------------------------------------------
 

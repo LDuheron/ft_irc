@@ -252,3 +252,9 @@ void		Server::handleClientEvent(Client *client)
 		// processIncomingData(client, buffer);
 	}
 }
+
+void			Server::sendMessage(Client *client, string &message)
+{
+	if (send(client->getSocket(), message.c_str(), message.length(), 0) == -1)
+		std::perror("send:");
+}

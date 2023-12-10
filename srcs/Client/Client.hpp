@@ -25,6 +25,7 @@ class Client
 		std::string				_incompleteMessage; //add to message class
 		bool					_capLSsent;
 		bool					_askPassword;
+		bool					_isConnected;
 
 	public:
 		Client(int, Server *);
@@ -58,6 +59,8 @@ class Client
 		Server				*getServer(void) const;
 		bool				getAskPassword(void) const;
 		void				setAskPassword(bool);
+		bool				getIsConnected(void) const;
+		void				setIsConnected(bool);
 
 		Client &operator=(Client const & rhs);
 };
