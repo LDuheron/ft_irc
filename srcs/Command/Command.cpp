@@ -77,6 +77,7 @@ vector<string> splitString(Client *client, const string &command, const string &
 
 void		Command::exec(Client *client, vector<string> &parsedCommand)
 {
+	
 	if (parsedCommand.empty())
 		return;
 	std::map<string, CommandFunction>::iterator it = this->_commandMap.find(parsedCommand[0]);
@@ -85,7 +86,7 @@ void		Command::exec(Client *client, vector<string> &parsedCommand)
 		std::cerr <<"Error: Unknown command: " << parsedCommand[0] << "\n";
 		return;
 	}
-	if (client->getPassCheck() == false && parsedCommand[0] != "PASS" && parsedCommand[0] != "CAP LS" && parsedCommand[0] != "CAP END")
+	if (!client->getPassCheck() && (!client->getNickCheck() || !client->getUserCheck()) && parsedCommand[0] != "PASS" && parsedCommand[0] != "CAP LS" && parsedCommand[0] != "CAP END")
 	{
 		if (parsedCommand[0] != "NICK" && parsedCommand[0] != "USER")
 		{
@@ -117,6 +118,7 @@ void		Command::exec(Client *client, vector<string> &parsedCommand)
 			}
 		}
 	}
+
 }
 
 void	Command::execCmds(Client *client, const std::string &command)
@@ -148,18 +150,17 @@ void	Command::sendCAPLs(Client *client, vector<string> &parsedCommand)
 {
 	(void)parsedCommand;
 
-		std::string capLs = ":DEFAULT CAP * LS :none\n";
-		if (send(client->getSocket(), capLs.c_str(), capLs.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send CAP LS");
+	std::string capLs = ":" + client->getServer()->getPassword() + " CAP * LS :none\n";
+	Server::sendMessage(client, capLs);
 }
 
 void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 {
 	(void)parsedCommand;
-	std::string welcome1 = ":" + client->getServer()->getNickname() + " 001 " + client->getNickname() + ":Welcome to the Internet Relay Network " + client->getNickname() + "!" + client->getUsername() + "@" + client->getServer()->getNickname() + "\n";
-	std::string welcome2 = ":" + client->getServer()->getNickname() + " 002 " + client->getNickname() + ":Your host is " + client->getServer()->getNickname()+ ", running version 0.1\n";
-	std::string welcome3 = ":" + client->getServer()->getNickname() + " 003 " + client->getNickname() + ":This server was created 2023/11/20\n";
-	std::string welcome4 = ":" + client->getServer()->getNickname() + " 004 " + client->getNickname() + ":" + client->getServer()->getNickname() + " ircd_version user_modes chan_modes\n";
+	std::string welcome1 = ":" + client->getServer()->getNickname() + " 001 " + client->getNickname() + ": Welcome to the Internet Relay Network " + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + "\n";
+	std::string welcome2 = ":" + client->getServer()->getNickname() + " 002 " + client->getNickname() + ": Your host is " + client->getServer()->getNickname()+ ", running version 0.1\n";
+	std::string welcome3 = ":" + client->getServer()->getNickname() + " 003 " + client->getNickname() + ": This server was created 2023/11/20\n";
+	std::string welcome4 = ":" + client->getServer()->getNickname() + " 004 " + client->getNickname() + ": " + client->getServer()->getNickname() + " ircd_version user_modes chan_modes\n";
 
 	Server::sendMessage(client, welcome1);
 	Server::sendMessage(client, welcome2);
@@ -194,16 +195,8 @@ void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 	std::string pingData;
 
 	pingData += parsedCommand[1] + " ";
-	std::string pongResponse = ":" + client->getServer()->getNickname() + " PONG :" + pingData + "\n";
+	std::string pongResponse = ":" + client->getServer()->getNickname() + " PONG : " + pingData + "\n";
 	Server::sendMessage(client, pongResponse);
-}
-
-static void	handleValidNick(Client *client, vector<string> &parsedCommand)
-{
-	client->setNickname(parsedCommand[1]);
-	client->setNickCheck();
-	if (client->getUserCheck() && !client->getIsConnected())
-		Command::sendRPLMessages(client, parsedCommand);
 }
 
 static bool	checkValidNick(Client *client, const string &nickname)
@@ -230,7 +223,7 @@ static bool	checkValidNick(Client *client, const string &nickname)
 
 static bool	checkNickInUse(Client *client, const string &nickname)
 {
-	string nickError = ":" + client->getServer()->getNickname() + " 433 * " + nickname + " :Nickname is already in use\n";
+	string nickError = ":" + client->getServer()->getNickname() + " 433 * " + nickname + " :Nickname is already in useee\n";
 
 	for (std::map<int, Client *>::const_iterator it = client->getServer()->getClientMap().begin(); it != client->getServer()->getClientMap().end(); ++it)
 	{
@@ -241,6 +234,17 @@ static bool	checkNickInUse(Client *client, const string &nickname)
 		}
 	}
 	return (false);
+}
+
+static void	handleValidNick(Client *client, vector<string> &parsedCommand)
+{
+	string nickMessage = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " NICK " + parsedCommand[1] + "\n";
+	client->setNickname(parsedCommand[1]);
+	if (client->getNickCheck() && client->getUserCheck())
+		Server::sendMessage(client, nickMessage);
+	client->setNickCheck();
+	if (client->getUserCheck() && !client->getIsConnected())
+		Command::sendRPLMessages(client, parsedCommand);
 }
 
 // ERR_NONICKNAMEGIVEN 			OK
@@ -277,20 +281,28 @@ void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 	if (parsedCommand.size() < 5)
 	{
 		std::string userError = ":" + client->getServer()->getNickname() + " 461 * USER :Not enough parameters\n";
-		if (send(client->getSocket(), userError.c_str(), userError.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send user error message");
+		Server::sendMessage(client, userError);
 		return;
 	}
 	else if (client->getUserCheck())
 	{
 		std::string AlreadyRegistered = ":" + client->getServer()->getNickname() + " 462 * :Unauthorized command (already registered)\n";
-		if (send(client->getSocket(), AlreadyRegistered.c_str(), AlreadyRegistered.length(), MSG_NOSIGNAL) == -1)
-			std::perror("Error : Failed to send already registered error message");
+		Server::sendMessage(client, AlreadyRegistered);
 		return;
 	}
 	else
 	{
 			client->setUsername(parsedCommand[1]);
+			if (parsedCommand[4][0] == ':')
+			{
+				string realname = parsedCommand[4].substr(1, parsedCommand[4].size());
+				for (size_t i = 5; i < parsedCommand.size(); ++i)
+					realname += " " + parsedCommand[i];
+				client->setRealname(realname);
+			}
+			else
+				client->setRealname(parsedCommand[4]);
+			std::cout << "realname : " << client->getRealname() << "\n";
 			client->setUserCheck();
 			if (client->getNickCheck() && !client->getIsConnected())
 				Command::sendRPLMessages(client, parsedCommand);

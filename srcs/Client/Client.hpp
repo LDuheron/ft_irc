@@ -63,6 +63,7 @@ class Client
 		void				setIsConnected(bool);
 
 		Client &operator=(Client const & rhs);
+
 };
 
 #endif

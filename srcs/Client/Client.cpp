@@ -1,5 +1,7 @@
 
 #include "Client.hpp"
+#include <netinet/in.h>
+#include <sys/socket.h>
 #include <vector>
 
 // Constructor -----------------------------------------------------------------
@@ -8,7 +10,7 @@ Client::Client(int socket, Server *server) :
 	_clientSocket(socket),
 	_nickname("DEFAULT"),
 	_username("DEFAULT"),
-	_hostname("DEFAULT"),
+	_hostname("localhost"),
 	_realname("DEFAULT"),
 	_nickCheck(false),
 	_userCheck(false),
@@ -21,8 +23,6 @@ Client::Client(int socket, Server *server) :
 	_isConnected(false)
 {
 	setEvent();
-	if (DEBUG)
-		std::cout << "Client : default constructor called.\n";
 }
 
 // Destructor ------------------------------------------------------------------
@@ -89,7 +89,6 @@ void				Client::setEvent()
 struct epoll_event	*Client::getEventAddress(void) { return (&this->_event); }
 
 Server				*Client::getServer(void) const { return (this->_server); }
-
 
 bool				Client::getAskPassword(void) const { return (this->_askPassword); }
 
