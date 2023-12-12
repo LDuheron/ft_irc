@@ -4,7 +4,8 @@
 
 // Constructor -----------------------------------------------------------------
 
-Channel::Channel() :
+Channel::Channel(const string &name) :
+	_name(name),
 	_banned(),
 	_members(),
 	_operator(),
@@ -12,14 +13,13 @@ Channel::Channel() :
 	_hasPassword(FALSE),
 	_maxUser(MAX_USER),
 	_password("NULL"),
-	_topic("NULL"),
-	_type(REGULAR)
+	_topic("NULL")
 {}
 
-Channel::Channel(Channel const & src)
-{
-	*this = src;
-}
+// Channel::Channel(Channel const & src)
+// {
+// 	*this = src;
+// }
 
 // Destructor ------------------------------------------------------------------
 Channel::~Channel()
@@ -32,60 +32,38 @@ Channel::~Channel()
 // 	return (this->_password);
 // }
 
-void	Channel::setPassword(std::string const &password)
-{
-	this->_password = password;
-}
+const std::string &	Channel::getName(void) const { return (this->_name); }
 
-const std::string &	Channel::getTopic(void)
-{
-	return (this->_topic);
-}
+// void	Channel::setName(std::string const &name) { this->_name = name; }
 
-void	Channel::setTopic(std::string const &topic)
-{
-	this->_topic = topic;
-}
+void	Channel::setPassword(std::string const &password) { this->_password = password; }
 
-const int &	Channel::getMaxUser(void)
-{
-	return (this->_maxUser);
-}
+const std::string &	Channel::getTopic(void) { return (this->_topic); }
 
-void	Channel::setMaxUser(int const &maxUser)
-{
-	this->_maxUser = maxUser;
-}
+void	Channel::setTopic(std::string const &topic) { this->_topic = topic; }
 
-const int &	Channel::getType(void)
-{
-	return (this->_type);
-}
+const int &	Channel::getMaxUser(void) { return (this->_maxUser); }
 
-void	Channel::setType(int const &type)
-{
-	this->_type = type;
-}
+void	Channel::setMaxUser(int const &maxUser) { this->_maxUser = maxUser; }
 
 // Overload --------------------------------------------------------------------
 
-Channel &	Channel::operator=(Channel const & rhs)
-{
-	for (int i = 0; i < (int)rhs._banned.size(); i++)
-		this->_banned.push_back(rhs._banned[i]);
-	for (int i = 0; i < (int)rhs._members.size(); i++)
-		this->_members.push_back(rhs._members[i]);
-	for (int i = 0; i < (int)rhs._operator.size(); i++)
-		this->_operator.push_back(rhs._operator[i]);
-	for (int i = 0; i < (int)rhs._invited.size(); i++)
-		this->_invited.push_back(rhs._invited[i]);
-	this->_hasPassword = rhs._hasPassword;
-	this->_maxUser = rhs._maxUser;
-	this->_password = rhs._password;
-	this->_topic = rhs._topic;
-	this->_type = rhs._type;
-	return (*this);
-}
+// Channel &	Channel::operator=(Channel const & rhs)
+// {
+// 	for (int i = 0; i < (int)rhs._banned.size(); i++)
+// 		this->_banned.push_back(rhs._banned[i]);
+// 	for (int i = 0; i < (int)rhs._members.size(); i++)
+// 		this->_members.push_back(rhs._members[i]);
+// 	for (int i = 0; i < (int)rhs._operator.size(); i++)
+// 		this->_operator.push_back(rhs._operator[i]);
+// 	for (int i = 0; i < (int)rhs._invited.size(); i++)
+// 		this->_invited.push_back(rhs._invited[i]);
+// 	this->_hasPassword = rhs._hasPassword;
+// 	this->_maxUser = rhs._maxUser;
+// 	this->_password = rhs._password;
+// 	this->_topic = rhs._topic;
+// 	return (*this);
+// }
 
 // Functions -------------------------------------------------------------------
 
@@ -162,7 +140,7 @@ void	Channel::uninviteMember(Client *client)
 	{
 		if (this->_operator[i] == client)
 		{
-			this->_operator.erase(_operator.begin() + i);
+			this->_operator.erase(_operator.begin() + i); // a modifier
 			std::cout << "Uninvited client succesfully.\n";
 			break ;
 		}
@@ -175,7 +153,7 @@ int	Channel::isInvited(Client *client)
 	{
 		if (this->_operator[i] == client)
 		{
-			this->_operator.erase(_operator.begin() + i);
+			this->_operator.erase(_operator.begin() + i); // a modifier
 			std::cout << "Client is invited.\n";
 			return (TRUE);
 		}
@@ -189,10 +167,13 @@ int	Channel::isOperator(Client *client)
 	{
 		if (this->_operator[i] == client)
 		{
-			this->_operator.erase(_operator.begin() + i);
+			this->_operator.erase(_operator.begin() + i); // a modifier
 			std::cout << "Client is operator.\n";
 			return (TRUE);
 		}
 	}
 	return (FALSE);
 }
+
+void	Channel::listUsers()
+{}

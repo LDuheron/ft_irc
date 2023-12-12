@@ -5,7 +5,6 @@
 # include "../Server/Server.hpp"
 
 # define REGULAR 0
-# define LOCAL 1
 // # define INVITATION_ONLY 1
 // # define PRIVATE 2
 
@@ -16,57 +15,58 @@
 class Server;
 class Client;
 
+using std::vector;
+using std::string;
 class Channel
 {
 	private:
-		std::vector<Client *>		_banned;
-		std::vector<Client *>		_members;
-		std::vector<Client *>		_operator;
-		std::vector<Client *>		_invited;
-
-		bool						_hasPassword;
-
-		int							_maxUser;
-		std::string					_password;
-		std::string					_topic; // general description of the channel
-		int							_type; // regular #, local &
+		string					_name;
+		vector<Client *>		_banned;
+		vector<Client *>		_members;
+		vector<Client *>		_operator;
+		vector<Client *>		_invited;
+		bool					_hasPassword;
+		int						_maxUser;
+		string					_password;
+		string					_topic; // general description of the channel
 
 	// mutable topic ?
 
 	public:
-		Channel();
-		Channel(Channel const & src);
+		Channel(const string &name);
+		// Channel(Channel const & src);
 		~Channel();
 
-		const int 			&getMaxUser(void);
-		void				setMaxUser(int const &maxUser);
+		const string	&getName(void) const;
+		// void			setName(string const &name);
 
-		// const std::string	&getPassword(void);
-		void				setPassword(std::string const &password);
+		const int 		&getMaxUser(void);
+		void			setMaxUser(int const &maxUser);
 
-		const std::string	&getTopic(void);
-		void				setTopic(std::string const &name);
+		// const string	&getPassword(void);
+		void			setPassword(string const &password);
 
-		const int 			&getType(void);
-		void				setType(int const &type);
+		const string	&getTopic(void);
+		void			setTopic(string const &name);
 
 		Channel &			operator=(Channel const & rhs);
 
-		void				banMember(Client *client);
-		void				unbanMember(Client *client);
+		void			banMember(Client *client);
+		void			unbanMember(Client *client);
 
-		void				addMember(Client *client);
-		void				removeMember(Client *client);
+		void			addMember(Client *client);
+		void			removeMember(Client *client);
 
-		void				addOperator(Client *client);
-		void				removeOperator(Client *client);
+		void			addOperator(Client *client);
+		void			removeOperator(Client *client);
 
-		void				inviteMember(Client *client);
-		void				uninviteMember(Client *client);
+		void			inviteMember(Client *client);
+		void			uninviteMember(Client *client);
 
-		int					isOperator(Client *client);
-		int					isInvited(Client *client);
+		int				isOperator(Client *client);
+		int				isInvited(Client *client);
 
+		void			listUsers();
 };
 
 /*

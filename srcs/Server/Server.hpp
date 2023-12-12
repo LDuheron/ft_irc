@@ -45,31 +45,33 @@ using std::string;
 class Server
 {
 private:
-	int						_IP;
-	int						_epollSocket;
-	int						_nbClients;
-	int						_serverPort;
-	int						_serverSocket;
-	string					_serverName;
-	string					_serverPassword;
-	struct epoll_event		_serverEvent;	// events management for the server
-	struct	sockaddr_in 	_serverAddr;
-	std::map<int, Client *>	_clientMap;
-	Command					*_command;
-	bool					_shutdown;
+	int							_IP;
+	int							_epollSocket;
+	int							_nbClients;
+	int							_serverPort;
+	int							_serverSocket;
+	string						_serverName;
+	string						_serverPassword;
+	struct epoll_event			_serverEvent;	// events management for the server
+	struct	sockaddr_in 		_serverAddr;
+	std::map<int, Client *>		_clientMap;
+	std::map<string, Channel *>	_channelMap;
+	Command						*_command;
+	bool						_shutdown;
 
 public:
 	Server();
 	Server(int port, string password);
 	~Server();
 
-	int const 						&getIP(void) const;
-	string const 					&getNickname(void) const;
-	string const 					&getPassword(void) const;
-	int const 						&getPort(void) const;
-	int const 						&getSocket(void) const;
-	std::map<int, Client *> const	&getClientMap(void) const;
-	void							setShutdown(bool);
+	int const 							&getIP(void) const;
+	string const 						&getNickname(void) const;
+	string const 						&getPassword(void) const;
+	int const 							&getPort(void) const;
+	int const 							&getSocket(void) const;
+	std::map<int, Client *> const		&getClientMap(void) const;
+	std::map<string, Channel *>			&getChannelMap(void);
+	void								setShutdown(bool);
 
 	void				start();
 

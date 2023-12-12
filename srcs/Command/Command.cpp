@@ -26,7 +26,7 @@ Command::Command()
 	registerCommand("WHOIS", doNothing);
 	registerCommand("MODE", doNothing);
 
-	// registerCommand("JOIN", handleJoin);
+	registerCommand("JOIN", handleJoin);
 }
 
 Command::~Command()
@@ -42,12 +42,12 @@ Command::~Command()
 
 // Functions -------------------------------------------------------------------
 
-void			Command::registerCommand(const std::string &command, CommandFunction function)
+void		Command::registerCommand(const std::string &command, CommandFunction function)
 {
 	this->_commandMap[command] = function;
 }
 
-vector<string> splitString(Client *client, const string &command, const string &delimiter)
+static vector<string>	splitString(Client *client, const string &command, const string &delimiter)
 {
 	vector<string> result;
 
@@ -133,7 +133,7 @@ void		Command::exec(Client *client, vector<string> &parsedCommand)
 
 }
 
-void	Command::execCmds(Client *client, const std::string &command)
+void		Command::execCmds(Client *client, const std::string &command)
 {
 	vector<string>			line = splitString(client, command, DELIMITER);
 	while (!line.empty())
@@ -338,25 +338,23 @@ void	Command::sendNewLine(Client *client)
 		std::perror("Error : Failed to send new line");
 }
 
-// vector<string>						Command::handleJoin(Client *client, std::string message, std::map<std::string, Channel> _channels)
-// {
-// 	std::string chanName = message.substr(6, message.size());
-// 	std::cout << "Channel name " << chanName << "\n";
+void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
+{
+	std::map<string, Channel *>	&channelMap = client->getServer()->getChannelMap();
+	string						channelName = "#" + parsedCommand[1]; //faire un parsing du name ptet
 
-// 	std::map<std::string, Channel>::iterator it = _channels.find(chanName);
-// 	if (it != _channels.end())
-// 	{
-// 		it->second.addMember(client);
-// 		it->second.addOperator(client);
-// 	}
-// 	else
-// 	{
-// 		Channel	newChannel;
+	std::cout << "Channel name : " << channelName << "\n";
 
-// 		if (message[6] == '&')
-// 			newChannel.setType(LOCAL);
-// 		newChannel.addMember(client);
-// 		newChannel.addOperator(client);
-// 		_channels.insert(std::make_pair(chanName, newChannel));
-// 	}
-// }
+	std::map<string, Channel *>::iterator it = channelMap.find(channelName);
+	if (it != channelMap.end())
+		channelMap[channelName]->addMember(client);
+	else
+	{
+		Channel	*newChannel = new Channel(channelName);
+
+		newChannel->addMember(client);
+		newChannel->addOperator(client);
+		channelMap[channelName] = newChannel;
+		// _channels.insert(std::make_pair(chanName, newChannel));
+	}
+}

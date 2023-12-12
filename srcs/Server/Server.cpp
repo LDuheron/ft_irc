@@ -1,4 +1,5 @@
 #include "../Server/Server.hpp"
+#include <map>
 
 using std::string;
 using std::vector;
@@ -16,6 +17,7 @@ Server::Server(int port, std::string password) :
 	_serverEvent(),
 	_serverAddr(),
 	_clientMap(),
+	_channelMap(),
 	_command(new Command()),
 	_shutdown(false)
 {}
@@ -26,6 +28,10 @@ Server::~Server()
 {
 	for (std::map<int, Client *>::iterator it = this->_clientMap.begin(); it != this->_clientMap.end(); ++it)
 		delete it->second;
+	this->_clientMap.clear();
+	for (std::map<string, Channel *>::iterator it = this->_channelMap.begin(); it != this->_channelMap.end(); ++it)
+		delete it->second;
+	this->_channelMap.clear();
 	delete this->_command;
 }
 
@@ -42,6 +48,8 @@ int const						&Server::getPort(void) const { return (this->_serverPort); }
 void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
 std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
+
+std::map<string, Channel *>	&Server::getChannelMap(void) { return (this->_channelMap); }
 
 void							Server::setShutdown(bool shutdown) { this->_shutdown = shutdown; }
 
