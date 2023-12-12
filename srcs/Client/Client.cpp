@@ -10,7 +10,7 @@ Client::Client(int socket, Server *server) :
 	_clientSocket(socket),
 	_nickname("DEFAULT"),
 	_username("DEFAULT"),
-	_hostname("localhost"),
+	_hostname("127.0.0.1"),
 	_realname("DEFAULT"),
 	_nickCheck(false),
 	_userCheck(false),
@@ -45,7 +45,6 @@ bool				Client::getCapLSsent(void) const { return (this->_capLSsent); }\
 void				Client::setIncompleteMessage(const std::string & incompleteMessage) { this->_incompleteMessage = incompleteMessage; }
 
 const std::string	&Client::getIncompleteMessage(void) const { return (this->_incompleteMessage); }
-
 
 
 void				Client::setSocket(int fd) { this->_clientSocket = fd; }
@@ -108,6 +107,5 @@ Client &	Client::operator=(Client const & rhs)
 	this->_event = rhs._event;
 	return (*this);
 }
-
 
 // Functions -------------------------------------------------------------------

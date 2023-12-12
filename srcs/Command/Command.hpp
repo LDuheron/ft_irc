@@ -24,6 +24,7 @@ class Command
 		~Command();
 
 		void 					registerCommand(const string &, CommandFunction);
+		void					execCommandBuffered(Client *);
 		void					exec(Client *, vector<string> &);
 		void					execCmds(Client *, const string &);
 		static void				sendPASSMessage(Client *);

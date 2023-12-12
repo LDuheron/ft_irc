@@ -27,6 +27,8 @@
 # define DEBUG2 0
 # define DEBUG_CMD 0
 
+# define SERVER_VERSION "0.5"
+
 # define HOST_NAME_MAX 255
 # define MAX_CLIENTS 10
 # define MAX_MESSAGE_LENGTH 512

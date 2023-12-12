@@ -255,6 +255,11 @@ void		Server::handleClientEvent(Client *client)
 
 void			Server::sendMessage(Client *client, string &message)
 {
+	string 	server = ":" + client->getServer()->getNickname();
+	message = server + " " + message + "\r\n";
 	if (send(client->getSocket(), message.c_str(), message.length(), 0) == -1)
 		std::perror("send:");
+	std::cout << "\n----- Server response -----\n";
+	std::cout << message;
+	std::cout << "---------------------------\n";
 }
