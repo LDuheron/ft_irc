@@ -351,7 +351,7 @@ string 	listCommandMembers(Channel *channel)
 
 void	sendJoinToAllUsers(Channel *channel, Client *client)
 {
-	string message = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " JOIN " + channel->getName();
+	string message = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " JOIN " + channel->getName() + "\r\n";
 
 	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
 	{
