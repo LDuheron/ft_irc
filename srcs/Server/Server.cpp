@@ -17,6 +17,7 @@ Server::Server(int port, std::string password) :
 	_serverEvent(),
 	_serverAddr(),
 	_clientMap(),
+	_clientMapStr(),
 	_channelMap(),
 	_command(new Command()),
 	_shutdown(false)
@@ -29,6 +30,7 @@ Server::~Server()
 	for (std::map<int, Client *>::iterator it = this->_clientMap.begin(); it != this->_clientMap.end(); ++it)
 		delete it->second;
 	this->_clientMap.clear();
+	this->_clientMapStr.clear();
 	for (std::map<string, Channel *>::iterator it = this->_channelMap.begin(); it != this->_channelMap.end(); ++it)
 		delete it->second;
 	this->_channelMap.clear();
@@ -37,24 +39,25 @@ Server::~Server()
 
 // Accessors -------------------------------------------------------------------
 
-std::string const				&Server::getNickname(void) const { return (this->_serverName); }
+std::string const			&Server::getNickname(void) const { return (this->_serverName); }
 
-std::string const				&Server::getPassword(void) const { return (this->_serverPassword); }
+std::string const			&Server::getPassword(void) const { return (this->_serverPassword); }
 
-int const						&Server::getIP(void) const { return (this->_IP); }
+int const					&Server::getIP(void) const { return (this->_IP); }
 
-int const						&Server::getPort(void) const { return (this->_serverPort); }
+int const					&Server::getPort(void) const { return (this->_serverPort); }
 
-void							Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
+void						Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
 
-std::map<int, Client *> const	&Server::getClientMap(void) const { return (this->_clientMap); }
+std::map<int, Client *> 	&Server::getClientMap(void) { return (this->_clientMap); }
+
+std::map<string, Client *> 	&Server::getClientMapStr(void) { return (this->_clientMapStr); }
 
 std::map<string, Channel *>	&Server::getChannelMap(void) { return (this->_channelMap); }
 
-void							Server::setShutdown(bool shutdown) { this->_shutdown = shutdown; }
+void						Server::setShutdown(bool shutdown) { this->_shutdown = shutdown; }
 
-
-
+// Functions - init server -------------------------------------------------------------------
 void		Server::start(void)
 {
 	init_server();
@@ -195,6 +198,7 @@ void		Server::handleNewClient(void)
 	controlSocket(clientSocket, O_NONBLOCK);
 
 	Client *newClient = getClient(clientSocket, this, this->_clientMap, this->_nbClients);
+	this->_clientMapStr.insert(std::make_pair(newClient->getNickname(), newClient));
 
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
 }
@@ -220,7 +224,8 @@ void		Server::loop(void)
 void		Server::removeClient(Client *client)
 {
 	epoll_ctl(this->_epollSocket, EPOLL_CTL_DEL, client->getSocket(), client->getEventAddress());
-	this->_clientMap.erase(client->getSocket()); // make fct removeClient
+	this->_clientMap.erase(client->getSocket());
+	this->_clientMapStr.erase(client->getNickname());
 	delete client;
 	this->_nbClients--;
 }

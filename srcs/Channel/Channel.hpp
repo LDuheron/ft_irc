@@ -73,6 +73,8 @@ class Channel
 		int				isInvited(Client *client);
 
 		void			listUsers();
+	
+		bool			isMember(Client *client);
 };
 
 /*

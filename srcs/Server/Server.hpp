@@ -55,6 +55,7 @@ private:
 	struct epoll_event			_serverEvent;	// events management for the server
 	struct	sockaddr_in 		_serverAddr;
 	std::map<int, Client *>		_clientMap;
+	std::map<string, Client *>	_clientMapStr;
 	std::map<string, Channel *>	_channelMap;
 	Command						*_command;
 	bool						_shutdown;
@@ -64,14 +65,15 @@ public:
 	Server(int port, string password);
 	~Server();
 
-	int const 							&getIP(void) const;
-	string const 						&getNickname(void) const;
-	string const 						&getPassword(void) const;
-	int const 							&getPort(void) const;
-	int const 							&getSocket(void) const;
-	std::map<int, Client *> const		&getClientMap(void) const;
-	std::map<string, Channel *>			&getChannelMap(void);
-	void								setShutdown(bool);
+	int const 					&getIP(void) const;
+	string const 				&getNickname(void) const;
+	string const 				&getPassword(void) const;
+	int const 					&getPort(void) const;
+	int const 					&getSocket(void) const;
+	std::map<int, Client *>		&getClientMap(void);
+	std::map<string, Client *>	&getClientMapStr(void);
+	std::map<string, Channel *>	&getChannelMap(void);
+	void						setShutdown(bool);
 
 	void				start();
 

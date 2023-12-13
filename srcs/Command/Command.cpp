@@ -19,6 +19,7 @@ Command::Command()
 	registerCommand("PING", handlePing);
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
+	registerCommand("PRIVMSG", handlePrivmsg);
 
 	registerCommand("SHUTDOWN", shutdown);
 
@@ -252,7 +253,9 @@ static void	handleValidNick(Client *client, vector<string> &parsedCommand)
 	string nickMessage = "NICK " + parsedCommand[1];
 	if (client->getNickCheck() && client->getUserCheck())
 		Server::sendMessageUser(client, nickMessage);
+	client->getServer()->getClientMapStr().erase(client->getNickname());
 	client->setNickname(parsedCommand[1]);
+	client->getServer()->getClientMapStr()[parsedCommand[1]] = client;
 	client->setNickCheck();
 	if (client->getUserCheck() && !client->getIsConnected())
 		Command::sendRPLMessages(client, parsedCommand);
@@ -316,25 +319,6 @@ void	Command::handleUser(Client *client, vector<string> &parsedCommand)
 	}
 }
 
-void	Command::doNothing(Client *Client, vector<string> &cmd)
-{
-	(void)Client;
-	(void)cmd;
-}
-
-void	Command::shutdown(Client *client, vector<string> &cmd)
-{
-	(void)cmd;
-	client->getServer()->setShutdown(true);
-}
-
-void	Command::sendNewLine(Client *client)
-{
-	std::string newLine = " \n";
-	if (send(client->getSocket(), newLine.c_str(), newLine.length(), MSG_NOSIGNAL) == -1)
-		std::perror("Error : Failed to send new line");
-}
-
 string 	listCommandMembers(Channel *channel)
 {
 	string result = "";
@@ -394,4 +378,100 @@ void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
 	// string message = "JOIN " + channelName;
 	// Server::sendMessageUser(client, message);
 	sendJoinReply(client, channelMap[channelName]);
+}
+
+static string	parseMsg(vector<string> &parsedCommand)
+{
+	string message = parsedCommand[2];
+
+	if (message[0] == ':')
+	{
+		message = message.substr(1, message.size());
+		for (size_t i = 3; i < parsedCommand.size(); ++i)
+			message += " " + parsedCommand[i];
+	}
+	return message;
+}
+
+static void	msgChannel(Client *sender, Channel *channel, string &message)
+{
+	(void)sender;
+	(void)channel;
+	(void)message;
+}
+
+static void	msgUser(Client *sender, Client *reciever, string &message)
+{
+	message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + reciever->getNickname() + " :" + message + "\r\n";
+	Server::sendMessageRaw(reciever, message);
+}
+
+void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
+{
+	string	error = "401 " + client->getNickname() + " " + parsedCommand[1] + " :No such nick/channel";
+
+	Server	*server = client->getServer();
+	string	message = parseMsg(parsedCommand);
+
+	if (parsedCommand[1][0] == '#')
+	{
+		std::map<string, Channel *>::iterator itChan = server->getChannelMap().find(parsedCommand[1]);
+		if (itChan != server->getChannelMap().end())
+			msgChannel(client, itChan->second, message);
+		else
+			Server::sendMessage(client, error);
+	}
+	else
+	{
+		std::map<string, Client *>::iterator itClient = server->getClientMapStr().find(parsedCommand[1]);
+		if (itClient != server->getClientMapStr().end())
+			msgUser(client, itClient->second, message);
+		else
+			Server::sendMessage(client, error);
+	}
+
+	// for (std::map<string, Channel *>::iterator itChan = serv->getChannelMap().begin(); itChan != serv->getChannelMap().end(); itChan++)
+	// {
+	// 	if ((*itChan)->getName() == parsedCommand[1])
+	// 	{
+	// 		if ((*itChan)->isMember(client))
+	// 			destinataire = parsedCommand[1];
+	// 		break;
+	// 	}
+	// }
+	// if (!destinataire.empty())
+	// {
+	// 	for (std::map<int, Client *>::const_iterator itClient = serv->getClientMap().begin(); itClient != serv->getClientMap().end(); itClient++)
+	// 	{
+	// 		if (itClient->second->getNickname() == parsedCommand[1])
+	// 		{
+	// 			destinataire = parsedCommand[1];
+	// 			break ;
+	// 		}
+	// 	}
+	// }
+	// if (destinataire.empty())
+	// {
+	// 	std::string msg = "PRIVMSG " + parsedCommand[1] + " :" + parsedCommand[2] + "\r\n";
+	// 	send(serv->getSocket(), msg.c_str(), msg.length(), 0);
+	// }
+}
+
+void	Command::doNothing(Client *Client, vector<string> &cmd)
+{
+	(void)Client;
+	(void)cmd;
+}
+
+void	Command::shutdown(Client *client, vector<string> &cmd)
+{
+	(void)cmd;
+	client->getServer()->setShutdown(true);
+}
+
+void	Command::sendNewLine(Client *client)
+{
+	std::string newLine = " \n";
+	if (send(client->getSocket(), newLine.c_str(), newLine.length(), MSG_NOSIGNAL) == -1)
+		std::perror("Error : Failed to send new line");
 }

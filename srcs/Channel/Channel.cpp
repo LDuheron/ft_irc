@@ -177,3 +177,16 @@ int	Channel::isOperator(Client *client)
 
 void	Channel::listUsers()
 {}
+
+bool	Channel::isMember(Client *client)
+{
+	for (size_t i = 0; i < this->_members.size(); i++)
+	{
+		if (this->_members[i] == client)
+		{
+			this->_members.erase(_members.begin() + i);
+			return (1);
+		}
+	}
+	return (0);
+}
