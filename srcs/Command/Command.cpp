@@ -249,13 +249,10 @@ static bool	checkNickInUse(Client *client, const string &nickname)
 
 static void	handleValidNick(Client *client, vector<string> &parsedCommand)
 {
-	string nickMessage = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " NICK " + parsedCommand[1] + "\n";
-	client->setNickname(parsedCommand[1]);
+	string nickMessage = "NICK " + parsedCommand[1];
 	if (client->getNickCheck() && client->getUserCheck())
-	{
-		if (send(client->getSocket(), nickMessage.c_str(), nickMessage.length(), 0) == -1)
-			std::perror("send:");
-	}
+		Server::sendMessageUser(client, nickMessage);
+	client->setNickname(parsedCommand[1]);
 	client->setNickCheck();
 	if (client->getUserCheck() && !client->getIsConnected())
 		Command::sendRPLMessages(client, parsedCommand);
@@ -338,10 +335,48 @@ void	Command::sendNewLine(Client *client)
 		std::perror("Error : Failed to send new line");
 }
 
+string 	listCommandMembers(Channel *channel)
+{
+	string result = "";
+
+	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
+	{
+		if ((*it)->isOperator(channel))
+			result += "@" + (*it)->getNickname() + " ";
+		else
+			result += (*it)->getNickname() + " ";
+	}
+	return result;
+}
+
+void	sendJoinToAllUsers(Channel *channel, Client *client)
+{
+	string message = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " JOIN " + channel->getName();
+
+	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
+	{
+		if (*it != client)
+			Server::sendMessageRaw(*it, message);
+	}
+}
+
+void	sendJoinReply(Client *client, Channel *channel)
+{
+	string joinReply = "JOIN " + channel->getName();
+	string namesMessage = "353 " + client->getNickname() + " = " + channel->getName() + " :" + listCommandMembers(channel);
+	string endOfNames = "366 " + client->getNickname() + " " + channel->getName() + " :End of NAMES list";
+
+	Server::sendMessageUser(client, joinReply);
+	Server::sendMessage(client, namesMessage);
+	Server::sendMessage(client, endOfNames);
+	sendJoinToAllUsers(channel, client);
+}
+
 void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
 {
 	std::map<string, Channel *>	&channelMap = client->getServer()->getChannelMap();
-	string						channelName = "#" + parsedCommand[1]; //faire un parsing du name ptet
+	string						channelName = parsedCommand[1]; //faire un parsing du name ptet
+	Channel						*newChannel = NULL;
 
 	std::cout << "Channel name : " << channelName << "\n";
 
@@ -350,11 +385,13 @@ void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
 		channelMap[channelName]->addMember(client);
 	else
 	{
-		Channel	*newChannel = new Channel(channelName);
+		newChannel = new Channel(channelName);
 
 		newChannel->addMember(client);
 		newChannel->addOperator(client);
 		channelMap[channelName] = newChannel;
-		// _channels.insert(std::make_pair(chanName, newChannel));
 	}
+	// string message = "JOIN " + channelName;
+	// Server::sendMessageUser(client, message);
+	sendJoinReply(client, channelMap[channelName]);
 }

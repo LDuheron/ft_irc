@@ -89,7 +89,10 @@ public:
 						//Gestion des messages reçus
 	void				handleClientEvent(Client *);
 
-	static void			sendMessage(Client *client, string &message);
+	static void			sendMessage(Client *, string &);
+	static void			sendMessageUser(Client *, string &);
+	static void			sendMessageRaw(Client *, string &);
+	static void			sendMessageChannel(Channel *, string &);
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const &);

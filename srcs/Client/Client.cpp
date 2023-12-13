@@ -109,3 +109,13 @@ Client &	Client::operator=(Client const & rhs)
 }
 
 // Functions -------------------------------------------------------------------
+
+bool	Client::isOperator(Channel *channel)
+{
+	for (std::vector<Client *>::const_iterator it = channel->getOperators().begin(); it != channel->getOperators().end(); ++it)
+	{
+		if (*it == this)
+			return (true);
+	}
+	return (false);
+}

@@ -1,4 +1,5 @@
 #pragma once
+#include <ctime>
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
@@ -20,6 +21,7 @@ using std::string;
 class Channel
 {
 	private:
+		time_t					_creationTime;
 		string					_name;
 		vector<Client *>		_banned;
 		vector<Client *>		_members;
@@ -39,6 +41,10 @@ class Channel
 
 		const string	&getName(void) const;
 		// void			setName(string const &name);
+
+		vector<Client *> const	&getMembers(void) const;
+
+		vector<Client *> const	&getOperators(void) const;
 
 		const int 		&getMaxUser(void);
 		void			setMaxUser(int const &maxUser);

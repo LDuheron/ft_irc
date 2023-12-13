@@ -271,3 +271,34 @@ void			Server::sendMessage(Client *client, string &message)
 	std::cout << message;
 	std::cout << "---------------------------\n";
 }
+
+void			Server::sendMessageUser(Client *client, string &message)
+{
+	string 	nick = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname();
+	message = nick + " " + message + "\r\n";
+	if (send(client->getSocket(), message.c_str(), message.length(), 0) == -1)
+		std::perror("send:");
+	std::cout << "\n----- Server response (user) -----\n";
+	std::cout << message;
+	std::cout << "---------------------------\n";
+}
+
+void			Server::sendMessageRaw(Client *client, string &message)
+{
+	message = message + "\r\n";
+	if (send(client->getSocket(), message.c_str(), message.length(), 0) == -1)
+		std::perror("send:");
+	std::cout << "\n----- Server response (raw) -----\n";
+	std::cout << message;
+	std::cout << "---------------------------\n";
+}
+
+void			Server::sendMessageChannel(Channel *channel, string &message)
+{
+	message += "\r\n";
+	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
+		sendMessage(*it, message);
+	std::cout << "\n----- Server response (channel) -----\n";
+	std::cout << message;
+	std::cout << "---------------------------\n";
+}

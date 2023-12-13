@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include <vector>
 
 # define MAX_USER 3
 
@@ -35,6 +36,10 @@ Channel::~Channel()
 const std::string &	Channel::getName(void) const { return (this->_name); }
 
 // void	Channel::setName(std::string const &name) { this->_name = name; }
+
+vector<Client *> const	&Channel::getMembers(void) const { return (this->_members); }
+
+vector<Client *> const	&Channel::getOperators(void) const { return (this->_operator); }
 
 void	Channel::setPassword(std::string const &password) { this->_password = password; }
 
@@ -107,12 +112,7 @@ void	Channel::removeMember(Client *client)
 	}
 }
 
-void	Channel::addOperator(Client *client)
-{
-	this->_members.push_back(client);
-	if (DEBUG)
-		std::cout << "Add client to operator successfully\n";
-}
+void	Channel::addOperator(Client *client) { this->_operator.push_back(client); }
 
 void	Channel::removeOperator(Client *client)
 {

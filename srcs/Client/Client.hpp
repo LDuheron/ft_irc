@@ -7,6 +7,7 @@
 # include "../Server/Server.hpp"
 
 class Server;
+class Channel;
 
 class Client
 {
@@ -62,8 +63,10 @@ class Client
 		bool				getIsConnected(void) const;
 		void				setIsConnected(bool);
 
+
 		Client &operator=(Client const & rhs);
 
+		bool				isOperator(Channel *);
 };
 
 #endif
