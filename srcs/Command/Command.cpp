@@ -429,32 +429,6 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 		else
 			Server::sendMessage(client, error);
 	}
-
-	// for (std::map<string, Channel *>::iterator itChan = serv->getChannelMap().begin(); itChan != serv->getChannelMap().end(); itChan++)
-	// {
-	// 	if ((*itChan)->getName() == parsedCommand[1])
-	// 	{
-	// 		if ((*itChan)->isMember(client))
-	// 			destinataire = parsedCommand[1];
-	// 		break;
-	// 	}
-	// }
-	// if (!destinataire.empty())
-	// {
-	// 	for (std::map<int, Client *>::const_iterator itClient = serv->getClientMap().begin(); itClient != serv->getClientMap().end(); itClient++)
-	// 	{
-	// 		if (itClient->second->getNickname() == parsedCommand[1])
-	// 		{
-	// 			destinataire = parsedCommand[1];
-	// 			break ;
-	// 		}
-	// 	}
-	// }
-	// if (destinataire.empty())
-	// {
-	// 	std::string msg = "PRIVMSG " + parsedCommand[1] + " :" + parsedCommand[2] + "\r\n";
-	// 	send(serv->getSocket(), msg.c_str(), msg.length(), 0);
-	// }
 }
 
 void	Command::doNothing(Client *Client, vector<string> &cmd)
