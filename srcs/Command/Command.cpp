@@ -398,11 +398,18 @@ static string	parseMsg(vector<string> &parsedCommand)
 
 static void	msgChannel(Client *sender, Channel *channel, string &message)
 {
-	message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + channel->getName() + " :" + message + "\r\n";
-	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
+	for (std::vector<Client*>::const_iterator itClientChan = channel->getMembers().begin(); itClientChan != channel->getMembers().end(); itClientChan++)
 	{
-		if (*it != sender)
-			Server::sendMessageRaw(*it, message);
+		if ((*itClientChan)->getNickname() == sender->getNickname())
+		{
+			message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + channel->getName() + " :" + message + "\r\n";
+			for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
+			{
+				if (*it != sender)
+					Server::sendMessageRaw(*it, message);
+			}
+			break ;
+		}
 	}
 }
 
@@ -459,41 +466,27 @@ void	Command::sendNewLine(Client *client)
 // KICK <channel> <user> :<reason>
 void	Command::handleKick(Client *client, vector<string> &parsedCommand)
 {
-	// checker si le channel existe
-	// checker si le il appartient au channel
-	// kick du channel.
-	// proteger du nombre de params
-
 	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
 	if (itChannel != client->getServer()->getChannelMap().end())
 	{
-		// std::cout << "---- printing all user of the chan before: \n";
-		// for (std::vector<Client *>::const_iterator itMembers = itChannel->second->getMembers().begin(); itMembers != itChannel->second->getMembers().end(); itMembers++)
-		// {
-		// 	std::cout << (*itMembers)->getNickname() << std::endl;
-		// }
-
-		if ((*itChannel).second->isMember(client->getServer()->getClientMapStr()[parsedCommand[2]]))
+		
+		std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[2]);
+		if (itClient != client->getServer()->getClientMapStr().end())
 		{
-			std::string msg = "KICK " + itChannel->second->getName() + " " + parsedCommand[2] + " ";
-			if (!parsedCommand[3].empty())
-				msg = msg + ":" + parsedCommand[2];
-			else
-				msg = msg + parsedCommand[3];
-			msgChannel(client, itChannel->second, msg);
-			itChannel->second->removeMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
-			std::cout << "Kicked user succesfully ! \n\n";
+			if ((*itChannel).second->isMember(client->getServer()->getClientMapStr()[parsedCommand[2]]))
+			{
+				itChannel->second->removeMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
+				std::string msg = "KICK " + itChannel->second->getName() + " " + parsedCommand[2] + " ";
+				if (!parsedCommand[3].empty())
+					msg = msg + ":" + parsedCommand[2]; // a debug
+				else
+					msg = msg + ":" + parsedCommand[3]; // a debug
+				msgChannel(client, itChannel->second, msg);
+			}
 		}
-	
-		// std::cout << "---- printing all user of the chan after: \n";
-		// for (std::vector<Client *>::const_iterator itMembers = itChannel->second->getMembers().begin(); itMembers != itChannel->second->getMembers().end(); itMembers++)
-		// {
-		// 	std::cout << (*itMembers)->getNickname() << std::endl;
-		// }
 	}
-	else
-		std::cout << "Channel doesn't exist.\n"; /// DEBUG
 }
+
 // INVITE <<user> <chan>
 void	Command::handleInvite(Client *client, vector<string> &parsedCommand)
 {
@@ -501,12 +494,11 @@ void	Command::handleInvite(Client *client, vector<string> &parsedCommand)
 	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
 	if (itChannel != client->getServer()->getChannelMap().end())
 	{
-		if (itChannel->second->isInvited(parsedCommand[1]))
-		itChannel->second->inviteMember(client); ////// 
+		if (itChannel->second->isInvited(client->getServer()->getClientMapStr()[parsedCommand[1]]) == false)
+			itChannel->second->inviteMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
 	}
-
 	std::string msg = " 341 " + client->getNickname() + " " + parsedCommand[2] + " " + parsedCommand[3];
-	client->getServer().sendMessage(client, msg);
+	client->getServer()->sendMessage(client, msg);
 
 	// :server_name 341 your_nickname bob #chan :Invite to #chan sent 
 	// :servername 341

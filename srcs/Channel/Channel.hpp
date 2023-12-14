@@ -28,6 +28,7 @@ class Channel
 		vector<Client *>		_operator;
 		vector<Client *>		_invited;
 		bool					_hasPassword;
+		int						_cptUser;
 		int						_maxUser;
 		string					_password;
 		string					_topic; // general description of the channel
@@ -57,13 +58,15 @@ class Channel
 		const string	&getTopic(void);
 		void			setTopic(string const &name);
 
-		Channel &			operator=(Channel const & rhs);
+		Channel &		operator=(Channel const & rhs);
 
 		void			banMember(Client *client);
 		void			unbanMember(Client *client);
 
 		void			addMember(Client *client);
 		void			removeMember(Client *client);
+		void			removeMember(std::string client);
+
 
 		void			addOperator(Client *client);
 		void			removeOperator(Client *client);
@@ -71,12 +74,15 @@ class Channel
 		void			inviteMember(Client *client);
 		void			uninviteMember(Client *client);
 
-		int				isOperator(Client *client);
-		int				isInvited(Client *client);
+		bool			isOperator(Client *client);
+		bool			isInvited(Client *client);
+		bool			isMember(Client *client);
+		bool			isBan(Client *client);
+
 
 		void			listUsers();
 	
-		bool			isMember(Client *client);
+		
 };
 
 /*
