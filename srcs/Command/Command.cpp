@@ -19,15 +19,17 @@ Command::Command()
 	registerCommand("PING", handlePing);
 	registerCommand("NICK", handleNick);
 	registerCommand("USER", handleUser);
-	registerCommand("PRIVMSG", handlePrivmsg);
 
 	registerCommand("SHUTDOWN", shutdown);
 
 	registerCommand("QUIT", doNothing);
+	registerCommand("WHO", doNothing);
 	registerCommand("WHOIS", doNothing);
 	registerCommand("MODE", doNothing);
 
 	registerCommand("JOIN", handleJoin);
+	registerCommand("PART", handlePart);
+	registerCommand("PRIVMSG", handlePrivmsg);
 }
 
 Command::~Command()
@@ -362,8 +364,6 @@ void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
 	string						channelName = parsedCommand[1]; //faire un parsing du name ptet
 	Channel						*newChannel = NULL;
 
-	std::cout << "Channel name : " << channelName << "\n";
-
 	std::map<string, Channel *>::iterator it = channelMap.find(channelName);
 	if (it != channelMap.end())
 		channelMap[channelName]->addMember(client);
@@ -375,9 +375,53 @@ void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
 		newChannel->addOperator(client);
 		channelMap[channelName] = newChannel;
 	}
-	// string message = "JOIN " + channelName;
-	// Server::sendMessageUser(client, message);
 	sendJoinReply(client, channelMap[channelName]);
+}
+
+static void sendPartReply(Client *client, Channel *channel, string &message)
+{
+	string partReply = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " PART " + channel->getName() + " :" + message + "\r\n";
+	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
+			Server::sendMessageRaw(*it, partReply);
+}
+
+void	Command::handlePart(Client *client, vector<string> &parsedCommand)
+{
+	std::map<string, Channel *>	&channelMap = client->getServer()->getChannelMap();
+	string						channelName = parsedCommand[1];
+	string						trailingMessage = "";
+
+	std::map<string, Channel *>::iterator it = channelMap.find(channelName);
+	if (it == channelMap.end())
+	{
+		string error = "403 " + client->getNickname() + " " + channelName + " :No such channel";
+		Server::sendMessage(client, error);
+		return;
+	}
+	Channel *channel = channelMap[channelName];
+	if (client->isOperator(channel))
+		channel->removeOperator(client);
+
+	if (parsedCommand.size() > 2 && parsedCommand[2][0] == ':')
+	{
+		trailingMessage = parsedCommand[2].substr(1, parsedCommand[2].size());
+		if (parsedCommand.size() > 3)
+		{
+			for	(size_t i = 3; i < parsedCommand.size(); ++i)
+				trailingMessage += " " + parsedCommand[i];
+		}
+	}
+
+	if (channel->getMembers().empty())
+	{
+		channelMap.erase(channelName);
+		delete channel;
+	}
+	else
+	{
+		sendPartReply(client, channel, trailingMessage);
+		channel->removeMember(client);
+	}
 }
 
 static string	parseMsg(vector<string> &parsedCommand)

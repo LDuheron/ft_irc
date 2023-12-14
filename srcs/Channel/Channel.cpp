@@ -92,21 +92,15 @@ void	Channel::unbanMember(Client *client)
 	}
 }
 
-void	Channel::addMember(Client *client)
-{
-	this->_members.push_back(client);
-	if (DEBUG)
-		std::cout << "Add client successfully\n";
-}
+void	Channel::addMember(Client *client) { this->_members.push_back(client); }
 
 void	Channel::removeMember(Client *client)
 {
-	for (int i = 0; i < (int)this->_members.size(); i++)
+	for (size_t i = 0; i < this->_members.size(); i++)
 	{
 		if (this->_members[i] == client)
 		{
 			this->_members.erase(_members.begin() + i);
-			std::cout << "Client succesfully erased.\n";
 			break ;
 		}
 	}
