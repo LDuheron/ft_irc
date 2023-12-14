@@ -41,6 +41,8 @@ vector<Client *> const	&Channel::getMembers(void) const { return (this->_members
 
 vector<Client *> const	&Channel::getOperators(void) const { return (this->_operator); }
 
+vector<Client *> const	&Channel::getInvited(void) const { return (this->_invited); }
+
 void	Channel::setPassword(std::string const &password) { this->_password = password; }
 
 const std::string &	Channel::getTopic(void) { return (this->_topic); }

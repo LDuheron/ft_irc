@@ -46,6 +46,8 @@ class Channel
 
 		vector<Client *> const	&getOperators(void) const;
 
+		vector<Client *> const	&getInvited(void) const;
+
 		const int 		&getMaxUser(void);
 		void			setMaxUser(int const &maxUser);
 

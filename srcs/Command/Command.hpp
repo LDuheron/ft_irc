@@ -39,6 +39,7 @@ class Command
 		static void handlePrivmsg(Client *, vector<string> &);
 		
 		static void handleKick(Client *, vector<string> &);
+		static void	handleInvite(Client *client, vector<string> &parsedCommand);
 
 		static void	doNothing(Client *, vector<string> &);
 		static void	sendNewLine(Client *);

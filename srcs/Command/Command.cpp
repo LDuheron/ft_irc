@@ -29,6 +29,7 @@ Command::Command()
 
 	registerCommand("JOIN", handleJoin);
 	registerCommand("KICK", handleKick);
+	registerCommand("INVITE", handleInvite);
 
 }
 
@@ -480,7 +481,7 @@ void	Command::handleKick(Client *client, vector<string> &parsedCommand)
 			else
 				msg = msg + parsedCommand[3];
 			msgChannel(client, itChannel->second, msg);
-			(itChannel->second)->removeMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
+			itChannel->second->removeMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
 			std::cout << "Kicked user succesfully ! \n\n";
 		}
 	
@@ -491,5 +492,22 @@ void	Command::handleKick(Client *client, vector<string> &parsedCommand)
 		// }
 	}
 	else
-		std::cout << "Channel doesn't exist.\n";
+		std::cout << "Channel doesn't exist.\n"; /// DEBUG
+}
+// INVITE <<user> <chan>
+void	Command::handleInvite(Client *client, vector<string> &parsedCommand)
+{
+	// checker si bann ou pas
+	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
+	if (itChannel != client->getServer()->getChannelMap().end())
+	{
+		if (itChannel->second->isInvited(parsedCommand[1]))
+		itChannel->second->inviteMember(client); ////// 
+	}
+
+	std::string msg = " 341 " + client->getNickname() + " " + parsedCommand[2] + " " + parsedCommand[3];
+	client->getServer().sendMessage(client, msg);
+
+	// :server_name 341 your_nickname bob #chan :Invite to #chan sent 
+	// :servername 341
 }
