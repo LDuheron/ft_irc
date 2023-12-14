@@ -30,6 +30,11 @@ Command::Command()
 	registerCommand("JOIN", handleJoin);
 	registerCommand("KICK", handleKick);
 	registerCommand("INVITE", handleInvite);
+	registerCommand("OPER", handleOper);
+
+	registerCommand("BAN", handleBan);
+	registerCommand("UNBAN", handleUnban);
+
 
 }
 
@@ -367,8 +372,10 @@ void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
 
 	std::cout << "Channel name : " << channelName << "\n";
 
+// checker si le client existe
+
 	std::map<string, Channel *>::iterator it = channelMap.find(channelName);
-	if (it != channelMap.end())
+	if (it != channelMap.end() && it->second->isBan(client) == false)
 		channelMap[channelName]->addMember(client);
 	else
 	{
@@ -502,4 +509,51 @@ void	Command::handleInvite(Client *client, vector<string> &parsedCommand)
 
 	// :server_name 341 your_nickname bob #chan :Invite to #chan sent 
 	// :servername 341
+}
+
+
+void	Command::handleBan(Client *client, vector<string> &parsedCommand)
+{
+	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
+	if (itChannel != client->getServer()->getChannelMap().end())
+	{	
+		std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[2]);
+		if (itClient != client->getServer()->getClientMapStr().end())
+		{
+			if ((*itChannel).second->isBan(client->getServer()->getClientMapStr()[parsedCommand[2]]) == false)
+				itChannel->second->banMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
+		}
+	}
+}
+
+void	Command::handleUnban(Client *client, vector<string> &parsedCommand)
+{
+	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
+	if (itChannel != client->getServer()->getChannelMap().end())
+	{	
+		std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[2]);
+		if (itClient != client->getServer()->getClientMapStr().end())
+		{
+			if ((*itChannel).second->isBan(client->getServer()->getClientMapStr()[parsedCommand[2]]) == true)
+				itChannel->second->unbanMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
+		}
+	}
+}
+
+
+// commande /oper pour devenir operateur de serveur -> ban du serveur et kill
+// /oper <username> <password>
+///// Checker le password.
+void	Command::handleOper(Client *client, vector<string> &parsedCommand)
+{
+	std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[1]);
+	if (itClient != client->getServer()->getClientMapStr().end())
+	{
+		if ((*itClient).second->getIsServOperator() == false)
+		{
+			(*itClient).second->setIsServOperator(true);
+			client->getServer()->addServOperator((*itClient).second, &parsedCommand[2]); //////
+		}
+	}
+	
 }

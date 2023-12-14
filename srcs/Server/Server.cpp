@@ -16,6 +16,7 @@ Server::Server(int port, std::string password) :
 	_serverPassword(password),
 	_serverEvent(),
 	_serverAddr(),
+	_serverOperator(),
 	_clientMap(),
 	_clientMapStr(),
 	_channelMap(),
@@ -48,6 +49,8 @@ int const					&Server::getIP(void) const { return (this->_IP); }
 int const					&Server::getPort(void) const { return (this->_serverPort); }
 
 void						Server::setSocket(int newSocket) { this->_serverSocket = newSocket; }
+
+std::map<string, Client *> 	&Server::getServerOperator(void) { return (this->_serverOperator); }
 
 std::map<int, Client *> 	&Server::getClientMap(void) { return (this->_clientMap); }
 
@@ -306,4 +309,20 @@ void			Server::sendMessageChannel(Channel *channel, string &message)
 	std::cout << "\n----- Server response (channel) -----\n";
 	std::cout << message;
 	std::cout << "---------------------------\n";
+}
+
+
+void		Server::addServOperator(Client *newOperator, std::string password)
+{
+	if (this->getPassword() == password)
+		this->_serverOperator.insert(std::make_pair(newOperator->getNickname(), newOperator));
+	else
+	{
+		
+	}
+}
+
+void		Server::removeServOperator(Client * client)
+{
+	this->_serverOperator.erase(client->getNickname());
 }

@@ -45,6 +45,7 @@ using std::string;
 class Server
 {
 private:
+
 	int							_IP;
 	int							_epollSocket;
 	int							_nbClients;
@@ -54,6 +55,7 @@ private:
 	string						_serverPassword;
 	struct epoll_event			_serverEvent;	// events management for the server
 	struct	sockaddr_in 		_serverAddr;
+	std::map<string, Client *>	_serverOperator;
 	std::map<int, Client *>		_clientMap;
 	std::map<string, Client *>	_clientMapStr;
 	std::map<string, Channel *>	_channelMap;
@@ -70,6 +72,7 @@ public:
 	string const 				&getPassword(void) const;
 	int const 					&getPort(void) const;
 	int const 					&getSocket(void) const;
+	std::map<string, Client *>	&getServerOperator(void);
 	std::map<int, Client *>		&getClientMap(void);
 	std::map<string, Client *>	&getClientMapStr(void);
 	std::map<string, Channel *>	&getChannelMap(void);
@@ -95,6 +98,10 @@ public:
 	static void			sendMessageUser(Client *, string &);
 	static void			sendMessageRaw(Client *, string &);
 	static void			sendMessageChannel(Channel *, string &);
+
+	void				addServOperator(Client *, std::string);
+	void				removeServOperator(Client *);
+
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const &);
