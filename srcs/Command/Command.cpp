@@ -28,6 +28,8 @@ Command::Command()
 	registerCommand("MODE", doNothing);
 
 	registerCommand("JOIN", handleJoin);
+	registerCommand("KICK", handleKick);
+
 }
 
 Command::~Command()
@@ -451,4 +453,43 @@ void	Command::sendNewLine(Client *client)
 	std::string newLine = " \n";
 	if (send(client->getSocket(), newLine.c_str(), newLine.length(), MSG_NOSIGNAL) == -1)
 		std::perror("Error : Failed to send new line");
+}
+
+// KICK <channel> <user> :<reason>
+void	Command::handleKick(Client *client, vector<string> &parsedCommand)
+{
+	// checker si le channel existe
+	// checker si le il appartient au channel
+	// kick du channel.
+	// proteger du nombre de params
+
+	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
+	if (itChannel != client->getServer()->getChannelMap().end())
+	{
+		// std::cout << "---- printing all user of the chan before: \n";
+		// for (std::vector<Client *>::const_iterator itMembers = itChannel->second->getMembers().begin(); itMembers != itChannel->second->getMembers().end(); itMembers++)
+		// {
+		// 	std::cout << (*itMembers)->getNickname() << std::endl;
+		// }
+
+		if ((*itChannel).second->isMember(client->getServer()->getClientMapStr()[parsedCommand[2]]))
+		{
+			std::string msg = "KICK " + itChannel->second->getName() + " " + parsedCommand[2] + " ";
+			if (!parsedCommand[3].empty())
+				msg = msg + ":" + parsedCommand[2];
+			else
+				msg = msg + parsedCommand[3];
+			msgChannel(client, itChannel->second, msg);
+			(itChannel->second)->removeMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
+			std::cout << "Kicked user succesfully ! \n\n";
+		}
+	
+		// std::cout << "---- printing all user of the chan after: \n";
+		// for (std::vector<Client *>::const_iterator itMembers = itChannel->second->getMembers().begin(); itMembers != itChannel->second->getMembers().end(); itMembers++)
+		// {
+		// 	std::cout << (*itMembers)->getNickname() << std::endl;
+		// }
+	}
+	else
+		std::cout << "Channel doesn't exist.\n";
 }
