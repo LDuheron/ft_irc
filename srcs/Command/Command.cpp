@@ -129,11 +129,6 @@ void		Command::exec(Client *client, vector<string> &parsedCommand)
 		if (client->getPassCheck())
 			execCommandBuffered(client);
 	}
-	// std::cout << "passcheck: " << client->getPassCheck() << "\n";
-	// std::cout << "nickcheck: " << client->getNickCheck() << "\n";
-	// std::cout << "usercheck: " << client->getUserCheck() << "\n";
-	// std::cout << "isconnected: " << client->getIsConnected() << "\n";
-
 }
 
 void		Command::execCmds(Client *client, const std::string &command)
@@ -476,6 +471,33 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 		else
 			Server::sendMessage(client, error);
 	}
+}
+
+void	Command::handleModes(Client *client, vector<string> &parsedCommand)
+{
+	if (parsedCommand.size() < 3)
+	{
+		string error = "461 * MODE :Not enough parameters";
+		Server::sendMessage(client, error);
+		return;
+	}
+
+	std::map<string, Channel *>	&channelMap = client->getServer()->getChannelMap();
+	string channelName = parsedCommand[1];
+	std::map<string, Channel *>::iterator it = channelMap.find(channelName);
+	if (it == channelMap.end())
+	{
+		string error = "403 " + client->getNickname() + " " + channelName + " :No such channel";
+		Server::sendMessage(client, error);
+		return;
+	}
+	if (parsedCommand[2].find_first_not_of("=-itkol") != std::string::npos)
+	{
+		string error = "472 " + client->getNickname() + " " + parsedCommand[2] + " :is unknown mode char to me";
+		Server::sendMessage(client, error);
+		return;
+	}
+	Channel *channel = channelMap[channelName];
 }
 
 void	Command::doNothing(Client *Client, vector<string> &cmd)

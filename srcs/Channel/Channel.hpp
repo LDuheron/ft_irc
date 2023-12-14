@@ -1,5 +1,5 @@
 #pragma once
-#include <ctime>
+#include <set>
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
@@ -21,16 +21,17 @@ using std::string;
 class Channel
 {
 	private:
-		time_t					_creationTime;
 		string					_name;
 		vector<Client *>		_banned;
 		vector<Client *>		_members;
 		vector<Client *>		_operator;
 		vector<Client *>		_invited;
 		bool					_hasPassword;
-		int						_maxUser;
-		string					_password;
 		string					_topic; // general description of the channel
+	
+		std::set<char>			_modes; // modes of the channel
+		string					_password;
+		int						_userLimit;
 
 	// mutable topic ?
 
@@ -46,11 +47,8 @@ class Channel
 
 		vector<Client *> const	&getOperators(void) const;
 
-		const int 		&getMaxUser(void);
-		void			setMaxUser(int const &maxUser);
-
-		// const string	&getPassword(void);
-		void			setPassword(string const &password);
+		// const int 		&getMaxUser(void);
+		// void			setMaxUser(int const &maxUser);
 
 		const string	&getTopic(void);
 		void			setTopic(string const &name);
@@ -62,19 +60,33 @@ class Channel
 
 		void			addMember(Client *client);
 		void			removeMember(Client *client);
+		bool			isMember(Client *client);
 
 		void			addOperator(Client *client);
 		void			removeOperator(Client *client);
+		int				isOperator(Client *client);
 
 		void			inviteMember(Client *client);
 		void			uninviteMember(Client *client);
-
-		int				isOperator(Client *client);
 		int				isInvited(Client *client);
+
 
 		void			listUsers();
 	
-		bool			isMember(Client *client);
+
+		void 			setMode(char mode);
+		void 			unsetMode(char mode);
+		bool 			isModeSet(char mode) const;
+
+		void 			setPassword(const std::string &password);
+		void			unsetPassword(void);
+		bool 			checkPassword(const string &) const;
+
+		void 			setUserLimit(int limit);
+		void			unsetUserLimit(void);
+		int 			getUserLimit(void) const;
+
+
 };
 
 /*
