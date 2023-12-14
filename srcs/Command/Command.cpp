@@ -217,7 +217,7 @@ void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 
 static bool	checkValidNick(Client *client, const string &nickname)	
 {
-	string nickError = ":" + client->getServer()->getNickname() + " 432 * :Erroneus nickname\n";
+	string nickError = "432 * :Erroneus nickname\n";
 	bool res = true;
 
 	if (nickname.empty())
@@ -252,7 +252,7 @@ static void	handleValidNick(Client *client, vector<string> &parsedCommand)
 {
 	string nickMessage = "NICK " + parsedCommand[1];
 	if (client->getNickCheck() && client->getUserCheck())
-		Server::sendMessageUser(client, nickMessage);
+		Server::sendMessageUser(client, nickMessage); // need to send to all users of the specific channels this user is in + all current privmsg
 	client->getServer()->getClientMapStr().erase(client->getNickname());
 	client->setNickname(parsedCommand[1]);
 	client->getServer()->getClientMapStr()[parsedCommand[1]] = client;
@@ -395,9 +395,12 @@ static string	parseMsg(vector<string> &parsedCommand)
 
 static void	msgChannel(Client *sender, Channel *channel, string &message)
 {
-	(void)sender;
-	(void)channel;
-	(void)message;
+	message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + channel->getName() + " :" + message + "\r\n";
+	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
+	{
+		if (*it != sender)
+			Server::sendMessageRaw(*it, message);
+	}
 }
 
 static void	msgUser(Client *sender, Client *reciever, string &message)

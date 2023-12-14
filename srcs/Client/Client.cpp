@@ -97,6 +97,7 @@ bool				Client::getIsConnected(void) const { return (this->_isConnected); }
 
 void				Client::setIsConnected(bool isConnected) { this->_isConnected = isConnected; }
 
+
 // Overload --------------------------------------------------------------------
 
 Client &	Client::operator=(Client const & rhs)

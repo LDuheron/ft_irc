@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <unistd.h>
 #include <vector>
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
@@ -62,7 +63,6 @@ class Client
 		void				setAskPassword(bool);
 		bool				getIsConnected(void) const;
 		void				setIsConnected(bool);
-
 
 		Client &operator=(Client const & rhs);
 
