@@ -95,13 +95,6 @@ void	Channel::unbanMember(Client *client)
 	}
 }
 
-<<<<<<< HEAD
-void	Channel::addMember(Client *client) { this->_members.push_back(client); }
-
-void	Channel::removeMember(Client *client)
-{
-	for (size_t i = 0; i < this->_members.size(); i++)
-=======
 bool	Channel::isBan(Client *client)
 {
 	for (std::vector<Client*>::const_iterator itBan = this->_banned.begin(); itBan != this->_banned.end(); itBan++)
@@ -133,13 +126,9 @@ bool	Channel::isMember(Client *client)
 void	Channel::removeMember(Client *client)
 {
 	for (std::vector<Client*>::const_iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
->>>>>>> netcat
 	{
 		if ((*itClient)->getNickname() == client->getNickname())
 		{
-<<<<<<< HEAD
-			this->_members.erase(_members.begin() + i);
-=======
 			this->_members.erase(itClient);
 			this->_cptUser -= 1;
 			std::cout << "Client succesfully remove.\n";
@@ -157,7 +146,6 @@ void	Channel::removeMember(std::string client)
 			this->_members.erase(itClient);
 			this->_cptUser -= 1;
 			std::cout << "Client succesfully erased.\n";
->>>>>>> netcat
 			break ;
 		}
 	}
