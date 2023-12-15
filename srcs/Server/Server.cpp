@@ -37,6 +37,7 @@ Server::~Server()
 		delete it->second;
 	this->_channelMap.clear();
 	delete this->_command;
+	delete this->_bot;
 }
 
 // Accessors -------------------------------------------------------------------
