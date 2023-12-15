@@ -20,7 +20,8 @@ Client::Client(int socket, Server *server) :
 	_incomplete(false),
 	_capLSsent(false),
 	_askPassword(false),
-	_isConnected(false)
+	_isConnected(false),
+	_isServOperator(false)
 {
 	setEvent();
 }
@@ -97,6 +98,10 @@ bool				Client::getIsConnected(void) const { return (this->_isConnected); }
 
 void				Client::setIsConnected(bool isConnected) { this->_isConnected = isConnected; }
 
+bool				Client::getIsServOperator(void) const { return (this->_isServOperator);}
+
+void				Client::setIsServOperator(bool isServOperator) { this->_isServOperator = isServOperator; }
+
 
 // Overload --------------------------------------------------------------------
 
@@ -120,3 +125,4 @@ bool	Client::isOperator(Channel *channel)
 	}
 	return (false);
 }
+

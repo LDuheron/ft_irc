@@ -38,6 +38,14 @@ class Command
 		static void	handleJoin(Client *client, vector<string> &);
 		static void	handlePart(Client *, vector<string> &);
 		static void handlePrivmsg(Client *, vector<string> &);
+		
+		static void handleKick(Client *, vector<string> &);
+		static void	handleInvite(Client *client, vector<string> &parsedCommand);
+
+		static void handleBan(Client *, vector<string> &);
+		static void handleUnban(Client *, vector<string> &);
+
+		static void	handleOper(Client *client, vector<string> &parsedCommand);
 
 		static void	doNothing(Client *, vector<string> &);
 		static void	sendNewLine(Client *);

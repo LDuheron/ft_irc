@@ -28,6 +28,8 @@ class Client
 		bool					_capLSsent;
 		bool					_askPassword;
 		bool					_isConnected;
+	
+		bool					_isServOperator; /////// /oper / die /quit /rehash
 
 	public:
 		Client(int, Server *);
@@ -63,10 +65,13 @@ class Client
 		void				setAskPassword(bool);
 		bool				getIsConnected(void) const;
 		void				setIsConnected(bool);
+		bool				getIsServOperator(void) const;
+		void				setIsServOperator(bool);
 
 		Client &operator=(Client const & rhs);
 
 		bool				isOperator(Channel *);
+
 };
 
 #endif
