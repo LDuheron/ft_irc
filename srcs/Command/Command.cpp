@@ -25,7 +25,7 @@ Command::Command()
 	registerCommand("QUIT", doNothing);
 	registerCommand("WHO", doNothing);
 	registerCommand("WHOIS", doNothing);
-	registerCommand("MODE", doNothing);
+	registerCommand("MODE", handleModes);
 
 	registerCommand("JOIN", handleJoin);
 	registerCommand("PART", handlePart);
@@ -214,7 +214,7 @@ void	Command::handlePing(Client *client, vector<string> &parsedCommand)
 
 static bool	checkValidNick(Client *client, const string &nickname)	
 {
-	string nickError = "432 * :Erroneus nickname\n";
+	string nickError = "432 * :Erroneus nickname";
 	bool res = true;
 
 	if (nickname.empty())
@@ -364,7 +364,7 @@ void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
 		channelMap[channelName]->addMember(client);
 	else
 	{
-		newChannel = new Channel(channelName);
+		newChannel = new Channel(channelName, client->getServer());
 
 		newChannel->addMember(client);
 		newChannel->addOperator(client);
@@ -473,31 +473,193 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 	}
 }
 
+void setUserMode(Client *client, vector<string> &parsedCommand)
+{
+	while (!parsedCommand[2].empty())
+	{
+		if (parsedCommand[2][0] == '+')
+		{
+			for (size_t i = 1; i < parsedCommand[2].size(); ++i)
+			{
+				if (parsedCommand[2][i] == '+' || parsedCommand[2][i] == '-')
+					break;
+				client->addMode(parsedCommand[2][i]);
+			}
+		}
+		else if (parsedCommand[2][0] == '-')
+		{
+			for (size_t i = 1; i < parsedCommand[2].size(); ++i)
+			{
+				if (parsedCommand[2][i] == '+' || parsedCommand[2][i] == '-')
+					break;
+				client->removeMode(parsedCommand[2][i]);
+			}
+		}
+		parsedCommand[2] = parsedCommand[2].substr(1);
+	}
+}
+
+void	executeMode(Channel *channel, vector<string> &parsedCommand, char command)
+{
+	switch (command) {
+		case 'k':
+			if (parsedCommand.size() < 4)
+			{
+				channel->removeMode('k');
+				return;
+			}
+			channel->setHasPassword(true);
+			channel->setPassword(parsedCommand[3]);
+			parsedCommand.erase(parsedCommand.begin() + 3);
+			break;
+		case 'i':
+			channel->setInviteOnly(true);
+			break;
+		case 'l':
+			if (parsedCommand.size() < 4 || parsedCommand[3].find_first_not_of("0123456789") != std::string::npos)
+			{
+				channel->removeMode('l');
+				return;
+			}
+			channel->setHasUserLimit(true);
+			channel->setUserLimit(std::stoi(parsedCommand[3]));
+			parsedCommand.erase(parsedCommand.begin() + 3);
+			break;
+		case 't':
+			channel->setTopicProtection(true);
+			break;
+		case 'o':
+			if (parsedCommand.size() < 4)
+				return;
+			std::map<string, Client *>::iterator it = channel->getServer()->getClientMapStr().find(parsedCommand[3]);
+			if (it == channel->getServer()->getClientMapStr().end())
+				return;
+			channel->addOperator(channel->getServer()->getClientMapStr()[parsedCommand[3]]);
+			parsedCommand.erase(parsedCommand.begin() + 3);
+			break;
+	}
+}
+
+void	removeMode(Channel *channel, vector<string> &parsedCommand, char command)
+{
+	switch (command) {
+		case 'k':
+			channel->setHasPassword(false);
+			break;
+		case 'i':
+			channel->setInviteOnly(false);
+			break;
+		case 'l':
+			channel->setHasUserLimit(false);
+			break;
+		case 't':
+			channel->setTopicProtection(false);
+			break;
+		case 'o':
+			if (parsedCommand.size() < 4)
+				return;
+			std::map<string, Client *>::iterator it = channel->getServer()->getClientMapStr().find(parsedCommand[3]);
+			if (it == channel->getServer()->getClientMapStr().end())
+				return;
+			channel->removeOperator(channel->getServer()->getClientMapStr()[parsedCommand[3]]);
+			parsedCommand.erase(parsedCommand.begin() + 3);
+			break;
+	}
+}
+
+void	setChannelMode(Channel *channel, vector<string> &parsedCommand)
+{
+	while (!parsedCommand[2].empty())
+	{
+		if (parsedCommand[2][0] == '+')
+		{
+			for (size_t i = 1; i < parsedCommand[2].size(); ++i)
+			{
+				if (parsedCommand[2][i] == '+' || parsedCommand[2][i] == '-')
+					break;
+				channel->addMode(parsedCommand[2][i]);
+				executeMode(channel, parsedCommand, parsedCommand[2][i]);
+			}
+		}
+		else if (parsedCommand[2][0] == '-')
+		{
+			for (size_t i = 1; i < parsedCommand[2].size(); ++i)
+			{
+				if (parsedCommand[2][i] == '+' || parsedCommand[2][i] == '-')
+					break;
+				channel->removeMode(parsedCommand[2][i]);
+			}
+		}
+		parsedCommand[2] = parsedCommand[2].substr(1);
+	}
+}
+
 void	Command::handleModes(Client *client, vector<string> &parsedCommand)
 {
-	if (parsedCommand.size() < 3)
+	if (parsedCommand.size() < 2)
 	{
 		string error = "461 * MODE :Not enough parameters";
 		Server::sendMessage(client, error);
 		return;
 	}
-
+	string name = parsedCommand[1];
+	if (name[0] != '#')
+	{
+		if (client->getNickname() != name)
+		{
+			string error = "502 * :Cant change mode for other users";
+			Server::sendMessage(client, error);
+			return;
+		}
+		if (parsedCommand.size() == 2)
+		{
+			string modes = "221 " + client->getNickname() + " +" + client->getModesString();
+			return;
+		}
+		else if (parsedCommand[2].find_first_not_of("+-i") != std::string::npos)
+		{
+			string error = "472 " + client->getNickname() + " " + parsedCommand[2] + " :is unknown mode char to me";
+			Server::sendMessage(client, error);
+			return;
+		}
+		setUserMode(client, parsedCommand);
+		string modes = "221 " + client->getNickname() + " +" + client->getModesString();
+		Server::sendMessage(client, modes);
+		return;
+	}
 	std::map<string, Channel *>	&channelMap = client->getServer()->getChannelMap();
-	string channelName = parsedCommand[1];
-	std::map<string, Channel *>::iterator it = channelMap.find(channelName);
+	std::map<string, Channel *>::iterator it = channelMap.find(name);
 	if (it == channelMap.end())
 	{
-		string error = "403 " + client->getNickname() + " " + channelName + " :No such channel";
+		string error = "403 " + client->getNickname() + " " + name + " :No such channel";
 		Server::sendMessage(client, error);
 		return;
 	}
-	if (parsedCommand[2].find_first_not_of("=-itkol") != std::string::npos)
+	if (!client->isOperator(it->second) && parsedCommand.size() > 2)
+	{
+		string error = "482 " + client->getNickname() + " :You're not channel operator";
+		Server::sendMessage(client, error);
+		return;
+	}
+	if (parsedCommand.size() == 2)
+	{
+		string modes = "324 " + client->getNickname() + " " + name + " +" + it->second->getModesString();
+		Server::sendMessage(client, modes);
+		return;
+	}
+	else if (parsedCommand[2].find_first_not_of("+-itkol") != std::string::npos)
 	{
 		string error = "472 " + client->getNickname() + " " + parsedCommand[2] + " :is unknown mode char to me";
 		Server::sendMessage(client, error);
 		return;
 	}
-	Channel *channel = channelMap[channelName];
+	Channel *channel = channelMap[name];
+	setChannelMode(channel, parsedCommand);
+	string modes = "324 " + client->getNickname() + " " + channel->getName() + " +" + channel->getModesString();
+	Server::sendMessage(client, modes);
+	string msg = "324 " + client->getNickname() + " " + channel->getName() + " +" + channel->getModesString();
+	Server::sendMessageChannel(channel, msg, client);
+	return;
 }
 
 void	Command::doNothing(Client *Client, vector<string> &cmd)

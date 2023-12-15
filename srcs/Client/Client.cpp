@@ -46,7 +46,6 @@ void				Client::setIncompleteMessage(const std::string & incompleteMessage) { th
 
 const std::string	&Client::getIncompleteMessage(void) const { return (this->_incompleteMessage); }
 
-
 void				Client::setSocket(int fd) { this->_clientSocket = fd; }
 
 int					Client::getSocket(void) const { return (this->_clientSocket); }
@@ -96,6 +95,21 @@ void				Client::setAskPassword(bool askPassword) { this->_askPassword = askPassw
 bool				Client::getIsConnected(void) const { return (this->_isConnected); }
 
 void				Client::setIsConnected(bool isConnected) { this->_isConnected = isConnected; }
+
+std::set<char>		&Client::getModes(void) { return (this->_modes); }
+
+void				Client::addMode(char mode) { this->_modes.insert(mode); }
+
+void				Client::removeMode(char mode) { this->_modes.erase(mode); }
+
+string				Client::getModesString(void)
+{
+	string modes;
+
+	for (std::set<char>::iterator it = this->_modes.begin(); it != this->_modes.end(); ++it)
+		modes += *it;
+	return (modes);
+}
 
 
 // Overload --------------------------------------------------------------------

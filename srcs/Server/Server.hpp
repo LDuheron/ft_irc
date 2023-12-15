@@ -94,7 +94,7 @@ public:
 	static void			sendMessage(Client *, string &);
 	static void			sendMessageUser(Client *, string &);
 	static void			sendMessageRaw(Client *, string &);
-	static void			sendMessageChannel(Channel *, string &);
+	static void			sendMessageChannel(Channel *, string &, Client *client);
 };
 
 std::ostream & operator<<(std::ostream & lhs, Server const &);

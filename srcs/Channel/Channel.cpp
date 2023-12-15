@@ -5,22 +5,19 @@
 
 // Constructor -----------------------------------------------------------------
 
-Channel::Channel(const string &name) :
+Channel::Channel(const string &name, Server *server) :
 	_name(name),
 	_banned(),
 	_members(),
 	_operator(),
 	_invited(),
 	_hasPassword(FALSE),
-	_topic(NULL),
-	_password(NULL),
+	_inviteOnly(FALSE),
+	_topic(""),
+	_server(server),
+	_password(""),
 	_userLimit(MAX_USER)
 {}
-
-// Channel::Channel(Channel const & src)
-// {
-// 	*this = src;
-// }
 
 // Destructor ------------------------------------------------------------------
 Channel::~Channel()
@@ -28,14 +25,9 @@ Channel::~Channel()
 
 // Accessors -------------------------------------------------------------------
 
-// const std::string &	Channel::getPassword(void)
-// {
-// 	return (this->_password);
-// }
 
 const std::string &	Channel::getName(void) const { return (this->_name); }
 
-// void	Channel::setName(std::string const &name) { this->_name = name; }
 
 vector<Client *> const	&Channel::getMembers(void) const { return (this->_members); }
 
@@ -45,9 +37,8 @@ const std::string &	Channel::getTopic(void) { return (this->_topic); }
 
 void	Channel::setTopic(std::string const &topic) { this->_topic = topic; }
 
-// const int &	Channel::getMaxUser(void) { return (this->_maxUser); }
+Server *Channel::getServer(void) const { return (this->_server); }
 
-// void	Channel::setMaxUser(int const &maxUser) { this->_maxUser = maxUser; }
 
 // Overload --------------------------------------------------------------------
 
@@ -101,6 +92,11 @@ void	Channel::removeOperator(Client *client)
 		}
 	}
 }
+
+void	Channel::setInviteOnly(bool inviteOnly) { this->_inviteOnly = inviteOnly; }
+
+bool	Channel::getInviteOnly(void) const { return (this->_inviteOnly); }
+
 
 void	Channel::inviteMember(Client *client)
 {
@@ -166,20 +162,26 @@ bool	Channel::isMember(Client *client)
 	return (0);
 }
 
-void	Channel::setMode(char mode) { this->_modes.insert(mode); }
+std::set<char>	&Channel::getModes(void) { return (this->_modes); }
 
-void	Channel::unsetMode(char mode) { this->_modes.erase(mode); }
+void	Channel::addMode(char mode) { this->_modes.insert(mode); }
 
-bool	Channel::isModeSet(char mode) const
+void	Channel::removeMode(char mode) { this->_modes.erase(mode); }
+
+std::string	Channel::getModesString(void)
 {
-	if (this->_modes.find(mode) != this->_modes.end())
-		return (true);
-	return (false);
+	std::string modes;
+
+	for (std::set<char>::iterator it = this->_modes.begin(); it != this->_modes.end(); ++it)
+		modes += *it;
+	return (modes);
 }
 
-void	Channel::setPassword(const std::string &password) { this->_password = password; }
+void	Channel::setHasPassword(bool hasPassword) { this->_hasPassword = hasPassword; }
 
-void	Channel::unsetPassword(void) { this->_password = "NULL"; }
+bool	Channel::getHasPassword(void) const { return (this->_hasPassword); }
+
+void	Channel::setPassword(const std::string &password) { this->_password = password; }
 
 bool	Channel::checkPassword(const string &password) const
 {
@@ -188,8 +190,15 @@ bool	Channel::checkPassword(const string &password) const
 	return (false);
 }
 
+void	Channel::setHasUserLimit(bool hasUserLimit) { this->_hasUserLimit = hasUserLimit; }
+
+bool	Channel::getHasUserLimit(void) const { return (this->_hasUserLimit); }
+
 void	Channel::setUserLimit(int limit) { this->_userLimit = limit; }
 
-void	Channel::unsetUserLimit(void) { this->_userLimit = -1; }
-
 int		Channel::getUserLimit(void) const { return (this->_userLimit); }
+
+
+void Channel::setTopicProtection(bool hasTopicProtection) { this->_hasTopicProtection = hasTopicProtection; }
+
+bool Channel::getTopicProtection(void) const { return (this->_hasTopicProtection); }

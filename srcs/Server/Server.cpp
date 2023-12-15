@@ -298,11 +298,14 @@ void			Server::sendMessageRaw(Client *client, string &message)
 	std::cout << "---------------------------\n";
 }
 
-void			Server::sendMessageChannel(Channel *channel, string &message)
+void			Server::sendMessageChannel(Channel *channel, string &message, Client *client)
 {
-	message += "\r\n";
 	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
-		sendMessage(*it, message);
+	{
+		string msg = ":" + (*it)->getNickname() + "!" + (*it)->getUsername() + "@" + (*it)->getHostname() + " " + message + "\r\n";
+		if ( *it != client)
+			sendMessage(*it, message);
+	}
 	std::cout << "\n----- Server response (channel) -----\n";
 	std::cout << message;
 	std::cout << "---------------------------\n";

@@ -1,4 +1,5 @@
 #pragma once
+#include <set>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -28,6 +29,7 @@ class Client
 		bool					_capLSsent;
 		bool					_askPassword;
 		bool					_isConnected;
+		std::set<char>			_modes;
 
 	public:
 		Client(int, Server *);
@@ -63,6 +65,10 @@ class Client
 		void				setAskPassword(bool);
 		bool				getIsConnected(void) const;
 		void				setIsConnected(bool);
+		std::set<char>		&getModes(void);
+		void				addMode(char);
+		void				removeMode(char);
+		std::string			getModesString(void);
 
 		Client &operator=(Client const & rhs);
 

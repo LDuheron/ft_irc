@@ -27,31 +27,29 @@ class Channel
 		vector<Client *>		_operator;
 		vector<Client *>		_invited;
 		bool					_hasPassword;
-		string					_topic; // general description of the channel
+		bool					_inviteOnly;
+		bool					_hasUserLimit;
+		bool					_hasTopicProtection;
+		string					_topic;
+		Server 					*_server;
 	
 		std::set<char>			_modes; // modes of the channel
 		string					_password;
 		int						_userLimit;
 
-	// mutable topic ?
-
 	public:
-		Channel(const string &name);
-		// Channel(Channel const & src);
+		Channel(const string &name, Server *server);
 		~Channel();
 
 		const string	&getName(void) const;
-		// void			setName(string const &name);
 
 		vector<Client *> const	&getMembers(void) const;
-
 		vector<Client *> const	&getOperators(void) const;
-
-		// const int 		&getMaxUser(void);
-		// void			setMaxUser(int const &maxUser);
 
 		const string	&getTopic(void);
 		void			setTopic(string const &name);
+
+		Server 			*getServer(void) const;
 
 		Channel &			operator=(Channel const & rhs);
 
@@ -66,6 +64,8 @@ class Channel
 		void			removeOperator(Client *client);
 		int				isOperator(Client *client);
 
+		void			setInviteOnly(bool inviteOnly);
+		bool			getInviteOnly(void) const;
 		void			inviteMember(Client *client);
 		void			uninviteMember(Client *client);
 		int				isInvited(Client *client);
@@ -74,18 +74,25 @@ class Channel
 		void			listUsers();
 	
 
-		void 			setMode(char mode);
-		void 			unsetMode(char mode);
-		bool 			isModeSet(char mode) const;
+		std::set<char>		&getModes(void);
+		void				addMode(char);
+		void				removeMode(char);
+		std::string			getModesString(void);
 
+		void 			setHasPassword(bool hasPassword);
+		bool 			getHasPassword(void) const;
 		void 			setPassword(const std::string &password);
-		void			unsetPassword(void);
 		bool 			checkPassword(const string &) const;
 
+
+		void 			setHasUserLimit(bool hasUserLimit);
+		bool 			getHasUserLimit(void) const;
 		void 			setUserLimit(int limit);
-		void			unsetUserLimit(void);
+		// void			unsetUserLimit(void);
 		int 			getUserLimit(void) const;
 
+		void 			setTopicProtection(bool hasTopicProtection);
+		bool 			getTopicProtection(void) const;
 
 };
 
