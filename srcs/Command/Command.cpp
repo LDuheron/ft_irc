@@ -552,7 +552,7 @@ void	Command::handleOper(Client *client, vector<string> &parsedCommand)
 		if ((*itClient).second->getIsServOperator() == false)
 		{
 			(*itClient).second->setIsServOperator(true);
-			client->getServer()->addServOperator((*itClient).second, &parsedCommand[2]); //////
+			client->getServer()->addServOperator((*itClient).second, parsedCommand[2]); //////
 		}
 	}
 	
