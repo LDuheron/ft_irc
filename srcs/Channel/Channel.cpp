@@ -7,7 +7,6 @@
 
 Channel::Channel(const string &name) :
 	_name(name),
-	_banned(),
 	_members(),
 	_operator(),
 	_invited(),
@@ -56,54 +55,8 @@ void	Channel::setMaxUser(int const &maxUser) { this->_maxUser = maxUser; }
 
 // Overload --------------------------------------------------------------------
 
-// Channel &	Channel::operator=(Channel const & rhs)
-// {
-// 	for (int i = 0; i < (int)rhs._banned.size(); i++)
-// 		this->_banned.push_back(rhs._banned[i]);
-// 	for (int i = 0; i < (int)rhs._members.size(); i++)
-// 		this->_members.push_back(rhs._members[i]);
-// 	for (int i = 0; i < (int)rhs._operator.size(); i++)
-// 		this->_operator.push_back(rhs._operator[i]);
-// 	for (int i = 0; i < (int)rhs._invited.size(); i++)
-// 		this->_invited.push_back(rhs._invited[i]);
-// 	this->_hasPassword = rhs._hasPassword;
-// 	this->_maxUser = rhs._maxUser;
-// 	this->_password = rhs._password;
-// 	this->_topic = rhs._topic;
-// 	return (*this);
-// }
 
 // Functions -------------------------------------------------------------------
-
-// BAN
-
-void	Channel::banMember(Client *client)
-{
-	this->_banned.push_back(client);
-}
-
-void	Channel::unbanMember(Client *client)
-{
-	for (std::vector<Client*>::const_iterator itBan = this->_banned.begin(); itBan != this->_banned.end(); itBan++)
-	{
-		if ((*itBan)->getNickname() == client->getNickname())
-		{
-			this->_banned.erase(itBan);
-			std::cout << "Client succesfully unbanned.\n";
-			break ;
-		}
-	}
-}
-
-bool	Channel::isBan(Client *client)
-{
-	for (std::vector<Client*>::const_iterator itBan = this->_banned.begin(); itBan != this->_banned.end(); itBan++)
-	{
-		if ((*itBan)->getNickname() == client->getNickname())
-			return (true);
-	}
-	return (false);
-}
 
 // MEMBER 
 

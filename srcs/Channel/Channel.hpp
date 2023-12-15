@@ -23,7 +23,6 @@ class Channel
 	private:
 		time_t					_creationTime;
 		string					_name;
-		vector<Client *>		_banned;
 		vector<Client *>		_members;
 		vector<Client *>		_operator;
 		vector<Client *>		_invited;
@@ -60,13 +59,9 @@ class Channel
 
 		Channel &		operator=(Channel const & rhs);
 
-		void			banMember(Client *client);
-		void			unbanMember(Client *client);
-
 		void			addMember(Client *client);
 		void			removeMember(Client *client);
 		void			removeMember(std::string client);
-
 
 		void			addOperator(Client *client);
 		void			removeOperator(Client *client);
@@ -77,8 +72,6 @@ class Channel
 		bool			isOperator(Client *client);
 		bool			isInvited(Client *client);
 		bool			isMember(Client *client);
-		bool			isBan(Client *client);
-
 
 		void			listUsers();
 	

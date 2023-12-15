@@ -21,7 +21,8 @@ Server::Server(int port, std::string password) :
 	_clientMapStr(),
 	_channelMap(),
 	_command(new Command()),
-	_shutdown(false)
+	_shutdown(false),
+	_bot(new Bot(this))
 {}
 
 // Destructor ------------------------------------------------------------------
@@ -59,6 +60,8 @@ std::map<string, Client *> 	&Server::getClientMapStr(void) { return (this->_clie
 std::map<string, Channel *>	&Server::getChannelMap(void) { return (this->_channelMap); }
 
 void						Server::setShutdown(bool shutdown) { this->_shutdown = shutdown; }
+
+Bot *							&Server::getBot(void) {return (this->_bot);};
 
 // Functions - init server -------------------------------------------------------------------
 void		Server::start(void)
@@ -314,12 +317,15 @@ void			Server::sendMessageChannel(Channel *channel, string &message)
 
 void		Server::addServOperator(Client *newOperator, std::string password)
 {
+	// checker que le client n'est pas deja un operateur
 	if (this->getPassword() == password)
 		this->_serverOperator.insert(std::make_pair(newOperator->getNickname(), newOperator));
-	// else
-	// {
-		
-	// }
+	else
+	{
+		string error = "464 :Password incorrect"; // A RECHECK
+		Server::sendMessage(newOperator, error);
+		return;
+	}
 }
 
 void		Server::removeServOperator(Client * client)
