@@ -875,42 +875,40 @@ void	Command::handleQuit(Client *client, vector<string> &parsedCommand)
 // /topic <channel> <new Topic>
 void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 {
-	(void)client;
-	std::cout << &parsedCommand[0] << " 1 " << &parsedCommand[1] << " 2 : " << &parsedCommand[2] << " 3 : " << &parsedCommand[3]; 
+	if (parsedCommand.size() < 3)
+	{
+		string error = "461 " + client->getNickname() + " TOPIC :Not enough parameters";
+		Server::sendMessage(client, error);
+		return;
+	}
+
 	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
 	if (itChannel != client->getServer()->getChannelMap().end())
 	{
-		if (parsedCommand.size() == 2) // afficher topic
+		if (parsedCommand.size() == 3) // afficher topic
 		{
-			std::cout << "DEBUG afficher topic \n";
 			if (!(itChannel->second->getTopic().empty()))
 			{
-				std::cout << "DEBUG afficher topic not empty \n";
 				std::string msg = "332 " + client->getNickname() + " " + itChannel->second->getName() + " :" + itChannel->second->getTopic();
-				// client->getServer()->sendMessageChannel(itChannel->second, msg);
+				Server::sendMessage(client, msg);
 			}
 			else
 			{
-				// std::cout << "DEBUG afficher topic empty \n";
 				std::string msg = "331 " + client->getNickname() + " " + itChannel->second->getName() + " :No topic is set";
-				// client->getServer()->sendMessageChannel(itChannel->second, msg);
+				Server::sendMessage(client, msg);
 			}
 		}
-		else if (parsedCommand.size() == 3)	// set new topic 
+		else if (parsedCommand.size() == 4)	// set new topic 
 		{
-			std::cout << "DEBUG set new topic\n";
-			// if (client->getIsServOperator())
-			// {
-				itChannel->second->setTopic("Lisa");
-				std::cout << "new topic : " << itChannel->second->getTopic() << std::endl;
-				std::string msg = " TOPIC " + itChannel->second->getName() + " :" + itChannel->second->getTopic();
-				client->getServer()->sendMessageChannel(itChannel->second, msg, NULL);
-			// }
-			// else
-			// {
-			// 	std::string msg = "482 " + client->getNickname() + " " + itChannel->second->getName() + ":You're not a channel operator";
-			// 	client->getServer()->sendMessage(client, msg);
-			// }
+			if (!client->isOperator(itChannel->second))
+			{
+				std::string msg = "482 " + client->getNickname() + " :You're not channel operator";
+				Server::sendMessage(client, msg);
+				return;
+			}
+			itChannel->second->setTopic(parsedCommand[3]);
+			std::string msg = " TOPIC " + itChannel->second->getName() + " :" + itChannel->second->getTopic();
+			client->getServer()->sendMessageChannel(itChannel->second, msg, NULL);
 		}
 	}
 }

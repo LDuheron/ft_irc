@@ -84,9 +84,9 @@ class Channel
 		void				removeMode(char);
 		std::string			getModesString(void);
 
-		void 			setHasPassword(bool hasPassword);
-		bool 			getHasPassword(void) const;
-		bool 			checkPassword(const string &) const;
+		void 				setHasPassword(bool hasPassword);
+		bool 				getHasPassword(void) const;
+		bool 				checkPassword(const string &) const;
 
 
 		void 			setHasUserLimit(bool hasUserLimit);
