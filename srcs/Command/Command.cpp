@@ -875,7 +875,7 @@ void	Command::handleQuit(Client *client, vector<string> &parsedCommand)
 // /topic <channel> <new Topic>
 void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 {
-	if (parsedCommand.size() < 3)
+	if (parsedCommand.size() < 2)
 	{
 		string error = "461 " + client->getNickname() + " TOPIC :Not enough parameters";
 		Server::sendMessage(client, error);
@@ -885,7 +885,7 @@ void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
 	if (itChannel != client->getServer()->getChannelMap().end())
 	{
-		if (parsedCommand.size() == 3) // afficher topic
+		if (parsedCommand.size() == 2) // afficher topic
 		{
 			if (!(itChannel->second->getTopic().empty()))
 			{
@@ -897,7 +897,7 @@ void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 			Server::sendMessage(client, msg);
 			return;
 		}
-		if (parsedCommand.size() == 4)	// set new topic 
+		if (parsedCommand.size() == 3)	// set new topic 
 		{
 			if (!client->isOperator(itChannel->second))
 			{
@@ -905,7 +905,7 @@ void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 				Server::sendMessage(client, msg);
 				return;
 			}
-			itChannel->second->setTopic(parsedCommand[3]);
+			itChannel->second->setTopic(parsedCommand[2]);
 			std::string msg = " TOPIC " + itChannel->second->getName() + " :" + itChannel->second->getTopic();
 			Server::sendMessageChannel(itChannel->second, msg, NULL);
 		}
