@@ -891,14 +891,13 @@ void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 			{
 				std::string msg = "332 " + client->getNickname() + " " + itChannel->second->getName() + " :" + itChannel->second->getTopic();
 				Server::sendMessage(client, msg);
+				return;
 			}
-			else
-			{
-				std::string msg = "331 " + client->getNickname() + " " + itChannel->second->getName() + " :No topic is set";
-				Server::sendMessage(client, msg);
-			}
+			std::string msg = "331 " + client->getNickname() + " " + itChannel->second->getName() + " :No topic is set";
+			Server::sendMessage(client, msg);
+			return;
 		}
-		else if (parsedCommand.size() == 4)	// set new topic 
+		if (parsedCommand.size() == 4)	// set new topic 
 		{
 			if (!client->isOperator(itChannel->second))
 			{
@@ -908,7 +907,7 @@ void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 			}
 			itChannel->second->setTopic(parsedCommand[3]);
 			std::string msg = " TOPIC " + itChannel->second->getName() + " :" + itChannel->second->getTopic();
-			client->getServer()->sendMessageChannel(itChannel->second, msg, NULL);
+			Server::sendMessageChannel(itChannel->second, msg, NULL);
 		}
 	}
 }
