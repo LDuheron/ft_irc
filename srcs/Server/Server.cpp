@@ -315,17 +315,17 @@ void			Server::sendMessageChannel(Channel *channel, string &message, Client *cli
 }
 
 
-void		Server::addServOperator(Client *newOperator, std::string password)
-{
-	if (this->getPassword() == password)
-		this->_serverOperator.insert(std::make_pair(newOperator->getNickname(), newOperator));
-	// else
-	// {
+// void		Server::addServOperator(Client *newOperator, std::string password)
+// {
+// 	if (this->getPassword() == password)
+// 		this->_serverOperator.insert(std::make_pair(newOperator->getNickname(), newOperator));
+// 	// else
+// 	// {
 		
-	// }
-}
+// 	// }
+// // }
 
-void		Server::removeServOperator(Client * client)
-{
-	this->_serverOperator.erase(client->getNickname());
-}
+// void		Server::removeServOperator(Client * client)
+// {
+// 	this->_serverOperator.erase(client->getNickname());
+// }

@@ -30,7 +30,6 @@ Command::Command()
 	registerCommand("JOIN", handleJoin);
 	registerCommand("KICK", handleKick);
 	registerCommand("INVITE", handleInvite);
-	registerCommand("OPER", handleOper);
 
 	registerCommand("BAN", handleBan);
 	registerCommand("UNBAN", handleUnban);
@@ -769,19 +768,19 @@ void	Command::handleUnban(Client *client, vector<string> &parsedCommand)
 }
 
 
-// commande /oper pour devenir operateur de serveur -> ban du serveur et kill
-// /oper <username> <password>
-///// Checker le password.
-void	Command::handleOper(Client *client, vector<string> &parsedCommand)
-{
-	std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[1]);
-	if (itClient != client->getServer()->getClientMapStr().end())
-	{
-		if ((*itClient).second->getIsServOperator() == false)
-		{
-			(*itClient).second->setIsServOperator(true);
-			client->getServer()->addServOperator((*itClient).second, parsedCommand[2]); //////
-		}
-	}
+// // commande /oper pour devenir operateur de serveur -> ban du serveur et kill
+// // /oper <username> <password>
+// ///// Checker le password.
+// void	Command::handleOper(Client *client, vector<string> &parsedCommand)
+// {
+// 	std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[1]);
+// 	if (itClient != client->getServer()->getClientMapStr().end())
+// 	{
+// 		if ((*itClient).second->getIsServOperator() == false)
+// 		{
+// 			(*itClient).second->setIsServOperator(true);
+// 			client->getServer()->addServOperator((*itClient).second, parsedCommand[2]); //////
+// 		}
+// 	}
 	
-}
+// }

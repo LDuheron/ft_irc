@@ -74,13 +74,13 @@ class Channel
 
 		void			addOperator(Client *client);
 		void			removeOperator(Client *client);
-		int				isOperator(Client *client);
+		bool			isOperator(Client *client);
 
 		void			setInviteOnly(bool inviteOnly);
 		bool			getInviteOnly(void) const;
 		void			inviteMember(Client *client);
 		void			uninviteMember(Client *client);
-		int				isInvited(Client *client);
+		bool			isInvited(Client *client);
 
 		bool			isBan(Client *client);
 

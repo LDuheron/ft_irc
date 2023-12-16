@@ -12,10 +12,10 @@ Channel::Channel(const string &name, Server *server) :
 	_operator(),
 	_invited(),
 	_hasPassword(FALSE),
-	_cptUser(0),
 	_inviteOnly(FALSE),
 	_topic(""),
 	_server(server),
+	_cptUser(0),
 	_password(""),
 	_userLimit(MAX_USER)
 {}
