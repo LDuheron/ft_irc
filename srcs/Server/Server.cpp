@@ -21,7 +21,8 @@ Server::Server(int port, std::string password) :
 	_clientMapStr(),
 	_channelMap(),
 	_command(new Command()),
-	_shutdown(false)
+	_shutdown(false),
+	_bot(new Bot(this))
 {}
 
 // Destructor ------------------------------------------------------------------
@@ -36,6 +37,7 @@ Server::~Server()
 		delete it->second;
 	this->_channelMap.clear();
 	delete this->_command;
+	delete this->_bot;
 }
 
 // Accessors -------------------------------------------------------------------
@@ -59,6 +61,8 @@ std::map<string, Client *> 	&Server::getClientMapStr(void) { return (this->_clie
 std::map<string, Channel *>	&Server::getChannelMap(void) { return (this->_channelMap); }
 
 void						Server::setShutdown(bool shutdown) { this->_shutdown = shutdown; }
+
+Bot *							&Server::getBot(void) {return (this->_bot);};
 
 // Functions - init server -------------------------------------------------------------------
 void		Server::start(void)

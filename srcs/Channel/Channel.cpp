@@ -7,7 +7,6 @@
 
 Channel::Channel(const string &name, Server *server) :
 	_name(name),
-	_banned(),
 	_members(),
 	_operator(),
 	_invited(),
@@ -46,36 +45,6 @@ Server *Channel::getServer(void) const { return (this->_server); }
 // Overload --------------------------------------------------------------------
 
 // Functions -------------------------------------------------------------------
-
-// BAN
-
-void	Channel::banMember(Client *client)
-{
-	this->_banned.push_back(client);
-}
-
-void	Channel::unbanMember(Client *client)
-{
-	for (std::vector<Client*>::const_iterator itBan = this->_banned.begin(); itBan != this->_banned.end(); itBan++)
-	{
-		if ((*itBan)->getNickname() == client->getNickname())
-		{
-			this->_banned.erase(itBan);
-			std::cout << "Client succesfully unbanned.\n";
-			break ;
-		}
-	}
-}
-
-bool	Channel::isBan(Client *client)
-{
-	for (std::vector<Client*>::const_iterator itBan = this->_banned.begin(); itBan != this->_banned.end(); itBan++)
-	{
-		if ((*itBan)->getNickname() == client->getNickname())
-			return (true);
-	}
-	return (false);
-}
 
 // MEMBER 
 

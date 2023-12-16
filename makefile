@@ -75,6 +75,7 @@ vpath %.hpp $(DEPS_DIR)
 #‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾#
 
 SRCS_DIR += srcs\
+			srcs/Bot\
 			srcs/Server\
 			srcs/Channel\
 			srcs/Client\
@@ -87,6 +88,7 @@ PATH_SRCS = $(SRCS_DIR)
 #‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾#
 
 SRCS +=	main.cpp\
+		Bot.cpp\
 		Server.cpp\
 		Channel.cpp\
 		Client.cpp\

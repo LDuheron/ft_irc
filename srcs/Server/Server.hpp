@@ -18,6 +18,7 @@
 # include <sstream>
 # include <functional>
 
+# include "../Bot/Bot.hpp"
 # include "../Client/Client.hpp"
 # include "../Message/Message.hpp"
 # include "../Channel/Channel.hpp"
@@ -39,6 +40,7 @@ class Channel;
 class Client;
 class Command;
 class Message;
+class Bot;
 
 using std::string;
 
@@ -61,6 +63,7 @@ private:
 	std::map<string, Channel *>	_channelMap;
 	Command						*_command;
 	bool						_shutdown;
+	Bot 						*_bot;
 
 public:
 	Server();
@@ -76,6 +79,8 @@ public:
 	std::map<int, Client *>		&getClientMap(void);
 	std::map<string, Client *>	&getClientMapStr(void);
 	std::map<string, Channel *>	&getChannelMap(void);
+	Bot	*						&getBot(void);
+
 	void						setShutdown(bool);
 
 	void				start();

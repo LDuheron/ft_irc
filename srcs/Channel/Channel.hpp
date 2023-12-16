@@ -22,7 +22,6 @@ class Channel
 {
 	private:
 		string					_name;
-		vector<Client *>		_banned;
 		vector<Client *>		_members;
 		vector<Client *>		_operator;
 		vector<Client *>		_invited;
@@ -62,15 +61,15 @@ class Channel
 		// const string	&getPassword(void);
 		void			setPassword(string const &password);
 
+		const string	&getTopic(void);
+		void			setTopic(string const &name);
 
-		void			banMember(Client *client);
-		void			unbanMember(Client *client);
+		Channel &		operator=(Channel const & rhs);
 
 		void			addMember(Client *client);
 		void			removeMember(Client *client);
 		bool			isMember(Client *client);
 		void			removeMember(std::string client);
-
 
 		void			addOperator(Client *client);
 		void			removeOperator(Client *client);
@@ -81,8 +80,7 @@ class Channel
 		void			inviteMember(Client *client);
 		void			uninviteMember(Client *client);
 		bool			isInvited(Client *client);
-
-		bool			isBan(Client *client);
+		bool			isMember(Client *client);
 
 		void			listUsers();
 	
