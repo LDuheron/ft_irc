@@ -12,6 +12,7 @@ Channel::Channel(const string &name, Server *server) :
 	_operator(),
 	_invited(),
 	_hasPassword(FALSE),
+	_cptUser(0),
 	_inviteOnly(FALSE),
 	_topic(""),
 	_server(server),
@@ -33,6 +34,8 @@ vector<Client *> const	&Channel::getMembers(void) const { return (this->_members
 
 vector<Client *> const	&Channel::getOperators(void) const { return (this->_operator); }
 
+vector<Client *> const	&Channel::getInvited(void) const { return (this->_invited); }
+
 const std::string &	Channel::getTopic(void) { return (this->_topic); }
 
 void	Channel::setTopic(std::string const &topic) { this->_topic = topic; }
@@ -44,54 +47,110 @@ Server *Channel::getServer(void) const { return (this->_server); }
 
 // Functions -------------------------------------------------------------------
 
+// BAN
+
 void	Channel::banMember(Client *client)
 {
 	this->_banned.push_back(client);
-	if (DEBUG)
-		std::cout << "Ban client successfully\n";
 }
 
 void	Channel::unbanMember(Client *client)
 {
-	for (int i = 0; i < (int)this->_banned.size(); i++)
+	for (std::vector<Client*>::const_iterator itBan = this->_banned.begin(); itBan != this->_banned.end(); itBan++)
 	{
-		if (this->_banned[i] == client)
+		if ((*itBan)->getNickname() == client->getNickname())
 		{
-			this->_banned.erase(_banned.begin() + i);
-			std::cout << "Client succesfully banned.\n";
+			this->_banned.erase(itBan);
+			std::cout << "Client succesfully unbanned.\n";
 			break ;
 		}
 	}
 }
 
-void	Channel::addMember(Client *client) { this->_members.push_back(client); }
+bool	Channel::isBan(Client *client)
+{
+	for (std::vector<Client*>::const_iterator itBan = this->_banned.begin(); itBan != this->_banned.end(); itBan++)
+	{
+		if ((*itBan)->getNickname() == client->getNickname())
+			return (true);
+	}
+	return (false);
+}
+
+// MEMBER 
+
+void	Channel::addMember(Client *client)
+{
+	this->_members.push_back(client);
+	this->_cptUser += 1;
+}
+
+bool	Channel::isMember(Client *client)
+{
+	for (std::vector<Client*>::const_iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
+	{
+		if ((*itClient)->getNickname() == client->getNickname())
+			return (true);
+	}
+	return (false);
+}
 
 void	Channel::removeMember(Client *client)
 {
-	for (size_t i = 0; i < this->_members.size(); i++)
+	for (std::vector<Client*>::const_iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
 	{
-		if (this->_members[i] == client)
+		if ((*itClient)->getNickname() == client->getNickname())
 		{
-			this->_members.erase(_members.begin() + i);
+			this->_members.erase(itClient);
+			this->_cptUser -= 1;
+			std::cout << "Client succesfully remove.\n";
+			break;
+		}
+	}
+}
+
+void	Channel::removeMember(std::string client)
+{
+	for (std::vector<Client*>::const_iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
+	{
+		if ((*itClient)->getNickname() == client)
+		{
+			this->_members.erase(itClient);
+			this->_cptUser -= 1;
+			std::cout << "Client succesfully erased.\n";
 			break ;
 		}
 	}
 }
+
+// Operators
 
 void	Channel::addOperator(Client *client) { this->_operator.push_back(client); }
 
 void	Channel::removeOperator(Client *client)
 {
-	for (int i = 0; i < (int)this->_operator.size(); i++)
+	for (std::vector<Client*>::const_iterator itOperator = this->_operator.begin(); itOperator != this->_operator.end(); itOperator++)
 	{
-		if (this->_operator[i] == client)
+		if ((*itOperator)->getNickname() == client->getNickname())
 		{
-			this->_operator.erase(_operator.begin() + i);
-			std::cout << "Suppressed client from operator.\n";
+			this->_operator.erase(itOperator);
+			std::cout << "Operator succesfully remove.\n";
 			break ;
 		}
 	}
 }
+
+bool	Channel::isOperator(Client *client)
+{
+	for (std::vector<Client*>::const_iterator itOperator = this->_operator.begin(); itOperator != this->_operator.end(); itOperator++)
+	{
+		if ((*itOperator)->getNickname() == client->getNickname())
+			return (true);
+	}
+	return (false);
+}
+
+// INVITE
 
 void	Channel::setInviteOnly(bool inviteOnly) { this->_inviteOnly = inviteOnly; }
 
@@ -107,60 +166,30 @@ void	Channel::inviteMember(Client *client)
 
 void	Channel::uninviteMember(Client *client)
 {
-	for (int i = 0; i < (int)this->_operator.size(); i++)
+
+	for (std::vector<Client*>::const_iterator itInvited = this->_invited.begin(); itInvited != this->_invited.end(); itInvited++)
 	{
-		if (this->_operator[i] == client)
+		if ((*itInvited)->getNickname() == client->getNickname())
 		{
-			this->_operator.erase(_operator.begin() + i); // a modifier
-			std::cout << "Uninvited client succesfully.\n";
+			this->_invited.erase(itInvited);
+			std::cout << "Client succesfully uninvited.\n";
 			break ;
 		}
 	}
 }
 
-int	Channel::isInvited(Client *client)
+bool	Channel::isInvited(Client *client)
 {
-	for (int i = 0; i < (int)this->_operator.size(); i++)
+	for (std::vector<Client*>::const_iterator itInvited = this->_invited.begin(); itInvited != this->_invited.end(); itInvited++)
 	{
-		if (this->_operator[i] == client)
-		{
-			this->_operator.erase(_operator.begin() + i); // a modifier
-			std::cout << "Client is invited.\n";
-			return (TRUE);
-		}
+		if ((*itInvited)->getNickname() == client->getNickname())
+			return (true);
 	}
-	return (FALSE);
-}
-
-int	Channel::isOperator(Client *client)
-{
-	for (int i = 0; i < (int)this->_operator.size(); i++)
-	{
-		if (this->_operator[i] == client)
-		{
-			this->_operator.erase(_operator.begin() + i); // a modifier
-			std::cout << "Client is operator.\n";
-			return (TRUE);
-		}
-	}
-	return (FALSE);
+	return (false);
 }
 
 void	Channel::listUsers()
 {}
-
-bool	Channel::isMember(Client *client)
-{
-	for (size_t i = 0; i < this->_members.size(); i++)
-	{
-		if (this->_members[i] == client)
-		{
-			this->_members.erase(_members.begin() + i);
-			return (1);
-		}
-	}
-	return (0);
-}
 
 std::set<char>	&Channel::getModes(void) { return (this->_modes); }
 

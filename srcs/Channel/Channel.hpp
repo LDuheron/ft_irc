@@ -34,6 +34,8 @@ class Channel
 		Server 					*_server;
 	
 		std::set<char>			_modes; // modes of the channel
+		int						_cptUser;
+		int						_maxUser;
 		string					_password;
 		int						_userLimit;
 
@@ -52,6 +54,14 @@ class Channel
 		Server 			*getServer(void) const;
 
 		Channel &			operator=(Channel const & rhs);
+		vector<Client *> const	&getInvited(void) const;
+
+		const int 		&getMaxUser(void);
+		void			setMaxUser(int const &maxUser);
+
+		// const string	&getPassword(void);
+		void			setPassword(string const &password);
+
 
 		void			banMember(Client *client);
 		void			unbanMember(Client *client);
@@ -59,6 +69,8 @@ class Channel
 		void			addMember(Client *client);
 		void			removeMember(Client *client);
 		bool			isMember(Client *client);
+		void			removeMember(std::string client);
+
 
 		void			addOperator(Client *client);
 		void			removeOperator(Client *client);
@@ -70,6 +82,7 @@ class Channel
 		void			uninviteMember(Client *client);
 		int				isInvited(Client *client);
 
+		bool			isBan(Client *client);
 
 		void			listUsers();
 	
@@ -81,7 +94,6 @@ class Channel
 
 		void 			setHasPassword(bool hasPassword);
 		bool 			getHasPassword(void) const;
-		void 			setPassword(const std::string &password);
 		bool 			checkPassword(const string &) const;
 
 
@@ -94,6 +106,7 @@ class Channel
 		void 			setTopicProtection(bool hasTopicProtection);
 		bool 			getTopicProtection(void) const;
 
+		
 };
 
 /*
