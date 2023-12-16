@@ -135,7 +135,7 @@ void		Server::init_server(void)
 
 	// Create socket
 	setSocket(createSocket());
-	if (DEBUG2)
+	if (LOG_OUTPUT)
 		std::cout << "===== server socket : " << this->_serverSocket << " =====" << std::endl;
 
 	//epoll call
@@ -198,7 +198,7 @@ void		Server::handleNewClient(void)
 	clientSocket = acceptNewClient(this->_serverSocket, this->_serverAddr);
 	if (clientSocket == -1)
 		return ;
-	if (DEBUG2)
+	if (LOG_OUTPUT)
 		std::cout << "===== Client socket : " << clientSocket << " =====" << std::endl;
 	
 	// Set client socket to non-blocking mode
@@ -250,7 +250,8 @@ void		Server::handleClientError(Client *client)
 
 void		Server::handleClientDisconnection(Client *client)
 {
-	std::cout << "Client disconnected: " << client->getSocket() << std::endl;
+	if (LOG_OUTPUT)
+		std::cout << "Client disconnected: " << client->getSocket() << std::endl;
 	removeClient(client);
 }
 
@@ -268,8 +269,6 @@ void		Server::handleClientEvent(Client *client)
 	{
 		buffer[bytesRead] = '\0';
 		this->_command->execCmds(client, buffer);
-		// this->_command->handleCommand(client, buffer);
-		// processIncomingData(client, buffer);
 	}
 }
 
@@ -279,9 +278,12 @@ void			Server::sendMessage(Client *client, string &message)
 	message = server + " " + message + "\r\n";
 	if (send(client->getSocket(), message.c_str(), message.length(), 0) == -1)
 		std::perror("send:");
-	std::cout << "\n----- Server response -----\n";
-	std::cout << message;
-	std::cout << "---------------------------\n";
+	if (LOG_OUTPUT)
+	{
+		std::cout << "\n----- Server response -----\n";
+		std::cout << message;
+		std::cout << "---------------------------\n";
+	}
 }
 
 void			Server::sendMessageUser(Client *client, string &message)
@@ -290,9 +292,12 @@ void			Server::sendMessageUser(Client *client, string &message)
 	message = nick + " " + message + "\r\n";
 	if (send(client->getSocket(), message.c_str(), message.length(), 0) == -1)
 		std::perror("send:");
-	std::cout << "\n----- Server response (user) -----\n";
-	std::cout << message;
-	std::cout << "---------------------------\n";
+	if (LOG_OUTPUT)
+	{
+		std::cout << "\n----- Server response (user) -----\n";
+		std::cout << message;
+		std::cout << "---------------------------\n";
+	}
 }
 
 // pas le temps d'être clean j'ai transcendance à taffer
@@ -300,9 +305,12 @@ void			Server::sendMessageRaw(Client *client, string &message)
 {
 	if (send(client->getSocket(), message.c_str(), message.length(), 0) == -1)
 		std::perror("send:");
-	std::cout << "\n----- Server response (raw) -----\n";
-	std::cout << message;
-	std::cout << "---------------------------\n";
+	if (LOG_OUTPUT)
+	{
+		std::cout << "\n----- Server response (raw) -----\n";
+		std::cout << message;
+		std::cout << "---------------------------\n";
+	}
 }
 
 void			Server::sendMessageChannel(Channel *channel, string &message, Client *client)
@@ -313,23 +321,10 @@ void			Server::sendMessageChannel(Channel *channel, string &message, Client *cli
 		if ( *it != client)
 			sendMessage(*it, message);
 	}
-	std::cout << "\n----- Server response (channel) -----\n";
-	std::cout << message;
-	std::cout << "---------------------------\n";
+	if (LOG_OUTPUT)
+	{
+		std::cout << "\n----- Server response (channel) -----\n";
+		std::cout << message + "\r\n";
+		std::cout << "---------------------------\n";
+	}
 }
-
-
-// void		Server::addServOperator(Client *newOperator, std::string password)
-// {
-// 	if (this->getPassword() == password)
-// 		this->_serverOperator.insert(std::make_pair(newOperator->getNickname(), newOperator));
-// 	// else
-// 	// {
-		
-// 	// }
-// // }
-
-// void		Server::removeServOperator(Client * client)
-// {
-// 	this->_serverOperator.erase(client->getNickname());
-// }

@@ -33,7 +33,7 @@ Command::Command()
 
 	registerCommand("TOPIC", handleTopic);
 
-	registerCommand("OPER", handleOper);
+	registerCommand("OPER", doNothing);
 	registerCommand("QUIT", handleQuit);
 
 	registerCommand("PART", handlePart);
@@ -155,10 +155,13 @@ void		Command::execCmds(Client *client, const std::string &command)
 			parsedCommand[1] = "CAP " + parsedCommand[1];
 			parsedCommand.erase(parsedCommand.begin());
 		}
-		std::cout << "\n===== Data received from client : =====\n";
-		for (std::vector<std::string>::iterator it2 = parsedCommand.begin(); it2 != parsedCommand.end(); ++it2)
-			std::cout << *it2 << "|";
-		std::cout << "\n=======================================\n\n";
+		if (LOG_OUTPUT)
+		{
+			std::cout << "\n===== Data received from client : =====\n";
+			for (std::vector<std::string>::iterator it2 = parsedCommand.begin(); it2 != parsedCommand.end(); ++it2)
+				std::cout << *it2 << "|";
+			std::cout << "\n=======================================\n\n";
+		}
 		exec(client, parsedCommand);
 		line.erase(line.begin());
 	}
@@ -178,7 +181,7 @@ void	Command::sendRPLMessages(Client *client, vector<string> &parsedCommand)
 	std::string welcome1 = "001 " + client->getNickname() + " :Welcome to the Internet Relay Network " + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname();
 	std::string welcome2 = "002 " + client->getNickname() + " :Your host is " + client->getServer()->getNickname()+ ", running version " + SERVER_VERSION;
 	std::string welcome3 = "003 " + client->getNickname() + " :This server was created 2023/11/20";
-	std::string welcome4 = "004 " + client->getNickname() + " :" + client->getServer()->getNickname() + " 1.0 o itkol";
+	std::string welcome4 = "004 " + client->getNickname() + " :" + client->getServer()->getNickname() + " 1.0 -none- itkol";
 
 	Server::sendMessage(client, welcome1);
 	Server::sendMessage(client, welcome2);
@@ -202,6 +205,11 @@ void	Command::checkPassword(Client *client, vector<string> &parsedCommand)
 {
 	string	passError = "464 * :Password incorrect";
 
+	if (parsedCommand.size() != 2)
+	{
+		Server::sendMessage(client, passError);
+		return;
+	}
 	if (client->getPassCheck() == false && parsedCommand[1] == client->getServer()->getPassword())
 		client->setPassCheck();
 	else
@@ -367,11 +375,50 @@ void	Command::handleJoin(Client *client, vector<string> &parsedCommand)
 	string						channelName = parsedCommand[1]; //faire un parsing du name ptet
 	Channel						*newChannel = NULL;
 
-// checker si le client existe
-
+	if (channelName[0] != '#')
+	{
+		string error = "403 " + client->getNickname() + " " + channelName + " :invalid Channel Name";
+		Server::sendMessage(client, error);
+		return;
+	}
 	std::map<string, Channel *>::iterator it = channelMap.find(channelName);
 	if (it != channelMap.end())
+	{
+		if (channelMap[channelName]->getInviteOnly() == true)
+		{
+			if (channelMap[channelName]->isInvited(client) == false)
+			{
+				string error = "473 " + client->getNickname() + " " + channelName + " :Cannot join channel (+i)";
+				Server::sendMessage(client, error);
+				return;
+			}
+		}
+		if (channelMap[channelName]->getHasPassword() == true)
+		{
+			if (parsedCommand.size() < 3)
+			{
+				string error = "461 " + client->getNickname() + " " + channelName + " :Not enough parameters";
+				Server::sendMessage(client, error);
+				return;
+			}
+			if (parsedCommand[2] != channelMap[channelName]->getPassword())
+			{
+				string error = "475 " + client->getNickname() + " " + channelName + " :Cannot join channel (+k)";
+				Server::sendMessage(client, error);
+				return;
+			}
+		}
+		if (channelMap[channelName]->getHasUserLimit() == true)
+		{
+			if (channelMap[channelName]->getMembers().size() >= channelMap[channelName]->getUserLimit())
+			{
+				string error = "471 " + client->getNickname() + " " + channelName + " :Cannot join channel (+l)";
+				Server::sendMessage(client, error);
+				return;
+			}
+		}
 		channelMap[channelName]->addMember(client);
+	}
 	else
 	{
 		newChannel = new Channel(channelName, client->getServer());
@@ -396,6 +443,12 @@ void	Command::handlePart(Client *client, vector<string> &parsedCommand)
 	string						channelName = parsedCommand[1];
 	string						trailingMessage = "";
 
+	if (channelName[0] != '#')
+	{
+		string error = "403 " + client->getNickname() + " " + channelName + " :invalid Channel Name";
+		Server::sendMessage(client, error);
+		return;
+	}
 	std::map<string, Channel *>::iterator it = channelMap.find(channelName);
 	if (it == channelMap.end())
 	{
@@ -416,16 +469,12 @@ void	Command::handlePart(Client *client, vector<string> &parsedCommand)
 				trailingMessage += " " + parsedCommand[i];
 		}
 	}
-
+	sendPartReply(client, channel, trailingMessage);
+	channel->removeMember(client);
 	if (channel->getMembers().empty())
 	{
 		channelMap.erase(channelName);
 		delete channel;
-	}
-	else
-	{
-		sendPartReply(client, channel, trailingMessage);
-		channel->removeMember(client);
 	}
 }
 
@@ -612,6 +661,7 @@ void	setChannelMode(Channel *channel, vector<string> &parsedCommand)
 				if (parsedCommand[2][i] == '+' || parsedCommand[2][i] == '-')
 					break;
 				channel->removeMode(parsedCommand[2][i]);
+				removeMode(channel, parsedCommand, parsedCommand[2][i]);
 			}
 		}
 		parsedCommand[2] = parsedCommand[2].substr(1);
@@ -705,73 +755,127 @@ void	Command::sendNewLine(Client *client)
 		std::perror("Error : Failed to send new line");
 }
 
+static void sendKickReply(Client *client, Channel *channel, string &message)
+{
+	string kickReply = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " " + message + "\r\n";
+	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
+			Server::sendMessageRaw(*it, kickReply);
+}
+
 // KICK <channel> <user> :<reason>
 void	Command::handleKick(Client *client, vector<string> &parsedCommand)
 {
-	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
-	if (itChannel != client->getServer()->getChannelMap().end())
+	string	trailingMessage = "";
+
+	if (parsedCommand.size() < 3)
 	{
-		
-		std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[2]);
-		if (itClient != client->getServer()->getClientMapStr().end())
+		string error = "461 " + client->getNickname() + " KICK :Not enough parameters";
+		Server::sendMessage(client, error);
+		return;
+	}
+
+	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
+	if (itChannel == client->getServer()->getChannelMap().end())
+	{
+		string error = "403 " + client->getNickname() + " " + parsedCommand[1] + " :No such channel";
+		Server::sendMessage(client, error);
+		return;
+	}
+	if (!client->isOperator(itChannel->second))
+	{
+		string error = "482 " + client->getNickname() + " :You're not channel operator";
+		Server::sendMessage(client, error);
+		return;
+	}
+	std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[2]);
+	if (itClient == client->getServer()->getClientMapStr().end())
+	{
+		string error = " " + client->getNickname() + " " + parsedCommand[2] + " :No such nick/channel";
+		Server::sendMessage(client, error);
+		return;
+	}
+	if (!(*itChannel).second->isMember(itClient->second))
+	{
+		string error = "441 " + client->getNickname() + " " + parsedCommand[2] + " :is not on channel " + parsedCommand[1];
+		Server::sendMessage(client, error);
+		return;
+	}
+	std::string msg = "KICK " + itChannel->second->getName() + " " + parsedCommand[2] + " ";
+		if (parsedCommand.size() > 2 && parsedCommand[2][0] == ':')
+	{
+		trailingMessage = parsedCommand[2].substr(1, parsedCommand[2].size());
+		if (parsedCommand.size() > 3)
 		{
-			if ((*itChannel).second->isMember(client->getServer()->getClientMapStr()[parsedCommand[2]]))
-			{
-				itChannel->second->removeMember(client->getServer()->getClientMapStr()[parsedCommand[2]]);
-				std::string msg = "KICK " + itChannel->second->getName() + " " + parsedCommand[2] + " ";
-				if (!parsedCommand[3].empty())
-					msg = msg + ":" + parsedCommand[2];
-				else
-					msg = msg + ":" + parsedCommand[3];
-				msgChannel(client, itChannel->second, msg);
-			}
+			for	(size_t i = 3; i < parsedCommand.size(); ++i)
+				trailingMessage += " " + parsedCommand[i];
 		}
+	}
+	msg += ":" + trailingMessage;
+	sendKickReply(client, itChannel->second, msg);
+	itChannel->second->removeMember(client);
+	if (itChannel->second->getMembers().empty())
+	{
+		client->getServer()->getChannelMap().erase(itChannel->first);
+		delete itChannel->second;
 	}
 }
 
-// INVITE <<user> <chan>
-void	Command::handleInvite(Client *client, vector<string> &parsedCommand)
+void	Command::handleInvite(Client *sender, vector<string> &parsedCommand)
 {
-	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
-	if (itChannel != client->getServer()->getChannelMap().end())
+	std::map<string, Channel *>::iterator itChannel = sender->getServer()->getChannelMap().find(parsedCommand[2]);
+	if (itChannel == sender->getServer()->getChannelMap().end())
 	{
-		if (itChannel->second->isInvited(client->getServer()->getClientMapStr()[parsedCommand[1]]) == false)
-			itChannel->second->inviteMember(client->getServer()->getClientMapStr()[parsedCommand[1]]);
+		std::string msg = "403 " + sender->getNickname() + " " + parsedCommand[2] + " :No such channel";
+		Server::sendMessage(sender, msg);
+		return;
 	}
-	std::string msg = "341 " + client->getNickname() + " " + parsedCommand[2] + " " + parsedCommand[3];
-	client->getServer()->sendMessage(client, msg);
-
-	// :servername 341 your_nickname bob #chan :Invite to #chan sent 
-	// :servername 341
-
-}
-
-// /oper <username> <password>
-void	Command::handleOper(Client *client, vector<string> &parsedCommand)
-{
-	std::map<string, Client *>::iterator itClient = client->getServer()->getClientMapStr().find(parsedCommand[1]);
-	if (itClient != client->getServer()->getClientMapStr().end())
+	if (!sender->isOperator(itChannel->second))
 	{
-		if ((*itClient).second->getIsServOperator() == false)
-		{
-			(*itClient).second->setIsServOperator(true);
-			client->getServer()->addServOperator((*itClient).second, parsedCommand[2]);
-		}
+		std::string msg = "482 " + sender->getNickname() + " :You're not channel operator";
+		Server::sendMessage(sender, msg);
+		return;
 	}
+	std::map<string, Client *>::iterator itClient = sender->getServer()->getClientMapStr().find(parsedCommand[1]);
+	if (itClient == sender->getServer()->getClientMapStr().end())
+	{
+		std::string msg = "401 " + sender->getNickname() + " " + parsedCommand[1] + " :No such nick/channel";
+		return;
+	}
+	Channel	*channel = itChannel->second;
+	Client	*receiver = itClient->second;
+
+	if (channel->isInvited(receiver) == false)
+		channel->inviteMember(receiver);
+	std::string msgSender = "341 " + sender->getNickname() + " " + parsedCommand[1] + " " + parsedCommand[2];
+	std::string msgRecv = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " INVITE " + parsedCommand[1] + " " + parsedCommand[2] + "\r\n";
+	Server::sendMessage(sender, msgSender);
+	Server::sendMessageRaw(receiver, msgRecv);
 }
 
 void	Command::handleQuit(Client *client, vector<string> &parsedCommand)
 {
-	// ajouter reason
-	if (client->getIsServOperator() == true)
-		shutdown(client, parsedCommand);
+	(void)parsedCommand;
+	std::map<string, Channel *>	&channelMap = client->getServer()->getChannelMap();
+	for (std::map<string, Channel *>::iterator it = channelMap.begin(); it != channelMap.end(); ++it)
+	{
+		if (it->second->isMember(client))
+		{
+			if (it->second->isOperator(client))
+				it->second->removeOperator(client);
+			it->second->removeMember(client);
+			if (it->second->getMembers().empty())
+			{
+				channelMap.erase(it->first);
+				delete it->second;
+			}
+		}
+	}
 }
 
 // /topic <channel> <new Topic>
 void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 {
 	(void)client;
-	std::cout << "DEBUG enter in handle topic\n";
 	std::cout << &parsedCommand[0] << " 1 " << &parsedCommand[1] << " 2 : " << &parsedCommand[2] << " 3 : " << &parsedCommand[3]; 
 	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
 	if (itChannel != client->getServer()->getChannelMap().end())
@@ -800,7 +904,7 @@ void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 				itChannel->second->setTopic("Lisa");
 				std::cout << "new topic : " << itChannel->second->getTopic() << std::endl;
 				std::string msg = " TOPIC " + itChannel->second->getName() + " :" + itChannel->second->getTopic();
-				client->getServer()->sendMessageChannel(itChannel->second, msg);
+				client->getServer()->sendMessageChannel(itChannel->second, msg, NULL);
 			// }
 			// else
 			// {

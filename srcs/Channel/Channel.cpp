@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include <string>
 #include <vector>
 
 # define MAX_USER 3
@@ -12,6 +13,8 @@ Channel::Channel(const string &name, Server *server) :
 	_invited(),
 	_hasPassword(FALSE),
 	_inviteOnly(FALSE),
+	_hasUserLimit(FALSE),
+	_hasTopicProtection(FALSE),
 	_topic(""),
 	_server(server),
 	_cptUser(0),
@@ -72,7 +75,6 @@ void	Channel::removeMember(Client *client)
 		{
 			this->_members.erase(itClient);
 			this->_cptUser -= 1;
-			std::cout << "Client succesfully remove.\n";
 			break;
 		}
 	}
@@ -86,7 +88,6 @@ void	Channel::removeMember(std::string client)
 		{
 			this->_members.erase(itClient);
 			this->_cptUser -= 1;
-			std::cout << "Client succesfully erased.\n";
 			break ;
 		}
 	}
@@ -103,7 +104,6 @@ void	Channel::removeOperator(Client *client)
 		if ((*itOperator)->getNickname() == client->getNickname())
 		{
 			this->_operator.erase(itOperator);
-			std::cout << "Operator succesfully remove.\n";
 			break ;
 		}
 	}
@@ -129,19 +129,15 @@ bool	Channel::getInviteOnly(void) const { return (this->_inviteOnly); }
 void	Channel::inviteMember(Client *client)
 {
 	this->_members.push_back(client);
-	if (DEBUG)
-		std::cout << "Invite client successfully\n";
 }
 
 void	Channel::uninviteMember(Client *client)
 {
-
 	for (std::vector<Client*>::const_iterator itInvited = this->_invited.begin(); itInvited != this->_invited.end(); itInvited++)
 	{
 		if ((*itInvited)->getNickname() == client->getNickname())
 		{
 			this->_invited.erase(itInvited);
-			std::cout << "Client succesfully uninvited.\n";
 			break ;
 		}
 	}
@@ -179,6 +175,8 @@ void	Channel::setHasPassword(bool hasPassword) { this->_hasPassword = hasPasswor
 
 bool	Channel::getHasPassword(void) const { return (this->_hasPassword); }
 
+const	string	&Channel::getPassword(void) const { return (this->_password); }
+
 void	Channel::setPassword(const std::string &password) { this->_password = password; }
 
 bool	Channel::checkPassword(const string &password) const
@@ -194,7 +192,7 @@ bool	Channel::getHasUserLimit(void) const { return (this->_hasUserLimit); }
 
 void	Channel::setUserLimit(int limit) { this->_userLimit = limit; }
 
-int		Channel::getUserLimit(void) const { return (this->_userLimit); }
+size_t		Channel::getUserLimit(void) const { return (this->_userLimit); }
 
 
 void Channel::setTopicProtection(bool hasTopicProtection) { this->_hasTopicProtection = hasTopicProtection; }

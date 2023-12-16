@@ -20,15 +20,12 @@
 
 # include "../Bot/Bot.hpp"
 # include "../Client/Client.hpp"
-# include "../Message/Message.hpp"
 # include "../Channel/Channel.hpp"
 # include "../Command/Command.hpp"
 
-# define DEBUG 0
-# define DEBUG2 0
-# define DEBUG_CMD 0
+# define LOG_OUTPUT 1
 
-# define SERVER_VERSION "0.5"
+# define SERVER_VERSION "1.9"
 
 # define HOST_NAME_MAX 255
 # define MAX_CLIENTS 10
@@ -96,7 +93,6 @@ public:
 	void				removeClient(Client *);
 	void				handleClientError(Client *);
 	void				handleClientDisconnection(Client *);
-						//Gestion des messages reçus
 	void				handleClientEvent(Client *);
 
 	static void			sendMessage(Client *, string &);
@@ -104,11 +100,6 @@ public:
 	static void			sendMessageRaw(Client *, string &);
 	static void			sendMessageChannel(Channel *, string &, Client *client);
 
-	// void				addServOperator(Client *, std::string);
-	// void				removeServOperator(Client *);
-
 };
-
-std::ostream & operator<<(std::ostream & lhs, Server const &);
 
 #endif

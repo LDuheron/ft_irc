@@ -30,8 +30,6 @@ Client::Client(int socket, Server *server) :
 
 Client::~Client(void)
 {
-	if (DEBUG)
-		std::cout << "Client : destructor called.\n";
 }
 // Accessors -------------------------------------------------------------------
 

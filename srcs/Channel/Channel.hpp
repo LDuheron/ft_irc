@@ -36,7 +36,7 @@ class Channel
 		int						_cptUser;
 		int						_maxUser;
 		string					_password;
-		int						_userLimit;
+		size_t					_userLimit;
 
 	public:
 		Channel(const string &name, Server *server);
@@ -58,13 +58,8 @@ class Channel
 		const int 		&getMaxUser(void);
 		void			setMaxUser(int const &maxUser);
 
-		// const string	&getPassword(void);
+		const string	&getPassword(void) const;
 		void			setPassword(string const &password);
-
-		const string	&getTopic(void);
-		void			setTopic(string const &name);
-
-		Channel &		operator=(Channel const & rhs);
 
 		void			addMember(Client *client);
 		void			removeMember(Client *client);
@@ -80,7 +75,6 @@ class Channel
 		void			inviteMember(Client *client);
 		void			uninviteMember(Client *client);
 		bool			isInvited(Client *client);
-		bool			isMember(Client *client);
 
 		void			listUsers();
 	
@@ -99,7 +93,7 @@ class Channel
 		bool 			getHasUserLimit(void) const;
 		void 			setUserLimit(int limit);
 		// void			unsetUserLimit(void);
-		int 			getUserLimit(void) const;
+		size_t 			getUserLimit(void) const;
 
 		void 			setTopicProtection(bool hasTopicProtection);
 		bool 			getTopicProtection(void) const;
