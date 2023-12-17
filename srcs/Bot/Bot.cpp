@@ -1,7 +1,7 @@
 #include "Bot.hpp"
 
 // Constructor
-Bot::Bot(Server *serv) : _name("bot"), _server(serv), _facts()
+Bot::Bot() : _name("bot"), _facts() //_server(serv),
 {
 	this->biblioFacts();
 }
@@ -10,6 +10,7 @@ Bot::Bot(Server *serv) : _name("bot"), _server(serv), _facts()
 
 Bot::~Bot()
 {
+	this->_facts.clear();
 }
 
 // Methods
@@ -55,11 +56,4 @@ void	Bot::biblioFacts(void)
 	this->_facts.push_back("The longest war between two nations lasted 781 years between England and France, known as the Hundred Years' War.\n");
 	this->_facts.push_back("The average person will walk around 70,000 miles in their lifetime.\n");
 	this->_facts.push_back("A crocodile cannot stick its tongue out.\n");
-	this->_facts.push_back("Starfish do not have a brain.\n");
-}
-
-void	Bot::sendFacts(Client *client)
-{
-	std::string msg = this->getRandomFacts();
-	_server->sendMessageUser(client, msg);
 }

@@ -10,24 +10,19 @@
 #include <ctime>
 #include <cstdlib>
 
-class Client;
-class Server;
-
 class Bot
 {
 	private:
 		std::string 				_name;
-		Server 						*_server;
 		std::vector<std::string>	_facts;
 
-		void		biblioFacts(void);
-		std::string	getRandomFacts(void);
+		void						biblioFacts(void);
 
 	public:
-		Bot(Server *serv);
-		~Bot();
-		void	sendFacts(Client *);
-	
+		Bot();
+		~Bot();		
+		std::string					getRandomFacts(void);
+
 };
 
 #endif

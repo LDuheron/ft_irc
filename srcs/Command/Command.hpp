@@ -53,7 +53,6 @@ class Command
 
 		static void	handleTopic(Client *, vector<string> &);
 
-
 };
 
 #endif

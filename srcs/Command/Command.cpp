@@ -43,6 +43,7 @@ Command::Command()
 Command::~Command()
 {
 	this->_commandMap.clear();
+	this->_commandBuffer.clear();
 }
 
 // Destructor ------------------------------------------------------------------
@@ -533,7 +534,10 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 	{
 		if (parsedCommand[1] == "bot")
 		{
-			client->getServer()->getBot()->sendFacts(client);
+			// std::string msg = client->getServer()->getBot()->getRandomFacts();
+			// Server::sendMessageUser(client, msg);
+			std::cout << "ok";
+
 		}
 		else
 		{

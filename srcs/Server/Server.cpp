@@ -22,7 +22,7 @@ Server::Server(int port, std::string password) :
 	_channelMap(),
 	_command(new Command()),
 	_shutdown(false),
-	_bot(new Bot(this))
+	_bot(new Bot())
 {}
 
 // Destructor ------------------------------------------------------------------
@@ -62,7 +62,7 @@ std::map<string, Channel *>	&Server::getChannelMap(void) { return (this->_channe
 
 void						Server::setShutdown(bool shutdown) { this->_shutdown = shutdown; }
 
-Bot *							&Server::getBot(void) {return (this->_bot);};
+Bot *						&Server::getBot(void) {return (this->_bot);};
 
 // Functions - init server -------------------------------------------------------------------
 void		Server::start(void)
@@ -116,6 +116,7 @@ static void	bindSocket(int socket, const struct sockaddr *addr)
 	if (bind(socket, (struct sockaddr *)addr, sizeof(*addr)) == -1)
 	{
 		std::perror("Error: Failed to bind socket");
+		close(socket);
 		std::exit(-1);
 	}
 }
@@ -125,6 +126,7 @@ static void	listenSocket(int socket)
 	if (listen(socket, MAX_CLIENTS) == -1)
 	{
 		std::perror("Error: Failed to listen socket");
+		close(socket);
 		std::exit(-1);
 	}
 }
