@@ -504,7 +504,10 @@ static void	msgChannel(Client *sender, Channel *channel, string &message)
 	{
 		if ((*itClientChan)->getNickname() == sender->getNickname())
 		{
-			message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + channel->getName() + " :" + message + "\r\n";
+			if (sender == NULL)
+				message = ":bot!bot@127.0.0.1 PRIVMSG " + channel->getName() + " :" + message + "\r\n";
+			else				
+				message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + channel->getName() + " :" + message + "\r\n";
 			for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
 			{
 				if (*it != sender)
@@ -526,15 +529,30 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 	string	error = "401 " + client->getNickname() + " " + parsedCommand[1] + " :No such nick/channel";
 
 	Server	*server = client->getServer();
-	string	message = parseMsg(parsedCommand);
 
+	if (parsedCommand.size() < 3)
+	{
+		Server::sendMessage(client, error);
+		return;
+	}
+	string	message = parseMsg(parsedCommand);
 	if (parsedCommand[1][0] == '#')
 	{
 		std::map<string, Channel *>::iterator itChan = server->getChannelMap().find(parsedCommand[1]);
-		if (itChan != server->getChannelMap().end())
-			msgChannel(client, itChan->second, message);
-		else
+		if (itChan == server->getChannelMap().end())
+		{
 			Server::sendMessage(client, error);
+			return;
+		}
+		if (parsedCommand[2] == "\\bot")
+		{
+			std::string msg = client->getServer()->getBot()->getRandomFacts();
+			msgChannel(NULL, itChan->second, msg);
+		}
+		else
+		{
+			msgChannel(client, itChan->second, message);
+		}
 	}
 	else
 	{
@@ -680,7 +698,7 @@ void	setChannelMode(Channel *channel, vector<string> &parsedCommand)
 
 static void sendModeReply(Client *client, Channel *channel)
 {
-	string modeReply = ":" + client->getServer()->getNickname() + " 221 " + client->getNickname() + " +" + client->getModesString() + "\r\n";
+	string modeReply = ":" + client->getServer()->getNickname() + " 324 " + client->getNickname() + " " + channel->getName() + " +" + channel->getModesString() + "\r\n";
 	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
 			Server::sendMessageRaw(*it, modeReply);
 }
@@ -746,8 +764,6 @@ void	Command::handleModes(Client *client, vector<string> &parsedCommand)
 	}
 	Channel *channel = channelMap[name];
 	setChannelMode(channel, parsedCommand);
-	string modes = "324 " + client->getNickname() + " " + channel->getName() + " +" + channel->getModesString();
-	// Server::sendMessage(client, modes);
 	sendModeReply(client, channel);
 	return;
 }
