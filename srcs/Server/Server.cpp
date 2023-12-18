@@ -216,6 +216,8 @@ void		Server::handleNewClient(void)
 	controlSocket(clientSocket, O_NONBLOCK);
 
 	Client *newClient = getClient(clientSocket, this, this->_clientMap, this->_nbClients);
+	if (newClient == NULL)
+		return ;
 	this->_clientMapStr.insert(std::make_pair(newClient->getNickname(), newClient));
 
 	controllEpoll(this->_epollSocket, EPOLL_CTL_ADD, clientSocket, newClient->getEventAddress());
@@ -244,6 +246,14 @@ void		Server::removeClient(Client *client)
 	epoll_ctl(this->_epollSocket, EPOLL_CTL_DEL, client->getSocket(), client->getEventAddress());
 	this->_clientMap.erase(client->getSocket());
 	this->_clientMapStr.erase(client->getNickname());
+	// remove client from all channels
+	for (std::map<string, Channel *>::iterator it = this->_channelMap.begin(); it != this->_channelMap.end(); ++it)
+	{
+		if (it->second->isMember(client))
+			it->second->removeMember(client);
+		if (it->second->isOperator(client))
+			it->second->removeOperator(client);
+	}
 	delete client;
 	this->_nbClients--;
 }

@@ -23,12 +23,12 @@
 # include "../Channel/Channel.hpp"
 # include "../Command/Command.hpp"
 
-# define LOG_OUTPUT 1
+# define LOG_OUTPUT 0
 
 # define SERVER_VERSION "1.9"
 
 # define HOST_NAME_MAX 255
-# define MAX_CLIENTS 10
+# define MAX_CLIENTS 1
 # define MAX_MESSAGE_LENGTH 512
 
 # define DELIMITER "\n" // delimiter should be \r\n but in the test with nc (cf subject) they use \n only
