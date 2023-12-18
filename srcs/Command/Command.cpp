@@ -545,27 +545,15 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 			msgChannel(NULL, itChan->second, msg);
 		}
 		else
-		{
 			msgChannel(client, itChan->second, message);
-		}
 	}
 	else
 	{
-		// if (parsedCommand[1] == "bot")
-		// {
-		// 	// std::string msg = client->getServer()->getBot()->getRandomFacts();
-		// 	// Server::sendMessageUser(client, msg);
-		// 	std::cout << "ok";
-
-		// }
-		// else
-		// {
-			std::map<string, Client *>::iterator itClient = server->getClientMapStr().find(parsedCommand[1]);
-			if (itClient != server->getClientMapStr().end())
-				msgUser(client, itClient->second, message);
-			else
-				Server::sendMessage(client, error);
-		// }
+		std::map<string, Client *>::iterator itClient = server->getClientMapStr().find(parsedCommand[1]);
+		if (itClient != server->getClientMapStr().end())
+			msgUser(client, itClient->second, message);
+		else
+			Server::sendMessage(client, error);
 	}
 }
 
