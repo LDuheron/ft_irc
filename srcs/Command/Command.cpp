@@ -502,7 +502,7 @@ static void	msgChannel(Client *sender, Channel *channel, string &message)
 {
 	for (std::vector<Client*>::const_iterator itClientChan = channel->getMembers().begin(); itClientChan != channel->getMembers().end(); itClientChan++)
 	{
-		if ((*itClientChan)->getNickname() == sender->getNickname())
+		if (sender == NULL || (*itClientChan)->getNickname() == sender->getNickname())
 		{
 			if (sender == NULL)
 				message = ":bot!bot@127.0.0.1 PRIVMSG " + channel->getName() + " :" + message + "\r\n";
@@ -544,7 +544,7 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 			Server::sendMessage(client, error);
 			return;
 		}
-		if (parsedCommand[2] == "\\bot")
+		if (parsedCommand[2] == "@bot" || parsedCommand[2] == ":@bot")
 		{
 			std::string msg = client->getServer()->getBot()->getRandomFacts();
 			msgChannel(NULL, itChan->second, msg);
@@ -556,21 +556,21 @@ void	Command::handlePrivmsg(Client *client, vector<string> &parsedCommand)
 	}
 	else
 	{
-		if (parsedCommand[1] == "bot")
-		{
-			// std::string msg = client->getServer()->getBot()->getRandomFacts();
-			// Server::sendMessageUser(client, msg);
-			std::cout << "ok";
+		// if (parsedCommand[1] == "bot")
+		// {
+		// 	// std::string msg = client->getServer()->getBot()->getRandomFacts();
+		// 	// Server::sendMessageUser(client, msg);
+		// 	std::cout << "ok";
 
-		}
-		else
-		{
+		// }
+		// else
+		// {
 			std::map<string, Client *>::iterator itClient = server->getClientMapStr().find(parsedCommand[1]);
 			if (itClient != server->getClientMapStr().end())
 				msgUser(client, itClient->second, message);
 			else
 				Server::sendMessage(client, error);
-		}
+		// }
 	}
 }
 
