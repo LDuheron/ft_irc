@@ -30,8 +30,6 @@ class Client
 		bool					_askPassword;
 		bool					_isConnected;
 		std::set<char>			_modes;
-	
-		// bool					_isServOperator; /////// /oper / die /quit /rehash
 
 	public:
 		Client(int, Server *);
@@ -71,8 +69,6 @@ class Client
 		void				addMode(char);
 		void				removeMode(char);
 		std::string			getModesString(void);
-		// bool				getIsServOperator(void) const;
-		// void				setIsServOperator(bool);
 
 		Client &operator=(Client const & rhs);
 
