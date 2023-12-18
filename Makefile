@@ -15,7 +15,7 @@ NAME	= ./$(PROJECT_NAME)
 CC = /usr/bin/c++
 
 # Compiler Flags
-CFLAGS = -Wall -Wextra -Werror #-std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98
 CFLAGS +=	-MMD -MP
 CFLAGS +=	-Wshadow
 CFLAGS += -g

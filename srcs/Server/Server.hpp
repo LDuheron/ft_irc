@@ -17,6 +17,8 @@
 # include <signal.h>
 # include <sstream>
 # include <functional>
+# include <errno.h>
+# include <cstdio>
 
 # include "../Bot/Bot.hpp"
 # include "../Client/Client.hpp"
@@ -28,7 +30,7 @@
 # define SERVER_VERSION "1.9"
 
 # define HOST_NAME_MAX 255
-# define MAX_CLIENTS 1
+# define MAX_CLIENTS 3
 # define MAX_MESSAGE_LENGTH 512
 
 # define DELIMITER "\n" // delimiter should be \r\n but in the test with nc (cf subject) they use \n only

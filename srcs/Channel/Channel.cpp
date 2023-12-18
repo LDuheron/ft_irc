@@ -69,7 +69,7 @@ bool	Channel::isMember(Client *client)
 
 void	Channel::removeMember(Client *client)
 {
-	for (std::vector<Client*>::const_iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
+	for (std::vector<Client*>::iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
 	{
 		if ((*itClient)->getNickname() == client->getNickname())
 		{
@@ -82,7 +82,7 @@ void	Channel::removeMember(Client *client)
 
 void	Channel::removeMember(std::string client)
 {
-	for (std::vector<Client*>::const_iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
+	for (std::vector<Client*>::iterator itClient = this->_members.begin(); itClient != this->_members.end(); itClient++)
 	{
 		if ((*itClient)->getNickname() == client)
 		{
@@ -99,7 +99,7 @@ void	Channel::addOperator(Client *client) { this->_operator.push_back(client); }
 
 void	Channel::removeOperator(Client *client)
 {
-	for (std::vector<Client*>::const_iterator itOperator = this->_operator.begin(); itOperator != this->_operator.end(); itOperator++)
+	for (std::vector<Client*>::iterator itOperator = this->_operator.begin(); itOperator != this->_operator.end(); itOperator++)
 	{
 		if ((*itOperator)->getNickname() == client->getNickname())
 		{
@@ -133,7 +133,7 @@ void	Channel::inviteMember(Client *client)
 
 void	Channel::uninviteMember(Client *client)
 {
-	for (std::vector<Client*>::const_iterator itInvited = this->_invited.begin(); itInvited != this->_invited.end(); itInvited++)
+	for (std::vector<Client*>::iterator itInvited = this->_invited.begin(); itInvited != this->_invited.end(); itInvited++)
 	{
 		if ((*itInvited)->getNickname() == client->getNickname())
 		{

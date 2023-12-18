@@ -17,7 +17,7 @@ Bot::~Bot()
 
 std::string	Bot::getRandomFacts(void)
 {
-	int seed = static_cast<int>(time(nullptr));
+	int seed = static_cast<int>(time(0));
 	srand(seed);
 	int randomIndex = rand() % this->_facts.size();
 	return (this->_facts[randomIndex]);

@@ -13,30 +13,30 @@ using std::vector;
 
 Command::Command()
 {
-	registerCommand("CAP LS", sendCAPLs);
-	registerCommand("CAP END", doNothing);
-	registerCommand("PASS", checkPassword);
-	registerCommand("PING", handlePing);
-	registerCommand("NICK", handleNick);
-	registerCommand("USER", handleUser);
+	registerCommand("CAP LS", &sendCAPLs);
+	registerCommand("CAP END", &doNothing);
+	registerCommand("PASS", &checkPassword);
+	registerCommand("PING", &handlePing);
+	registerCommand("NICK", &handleNick);
+	registerCommand("USER", &handleUser);
 
-	registerCommand("SHUTDOWN", shutdown);
+	registerCommand("SHUTDOWN", &shutdown);
 
-	registerCommand("QUIT", doNothing);
-	registerCommand("WHO", doNothing);
-	registerCommand("WHOIS", doNothing);
-	registerCommand("MODE", handleModes);
+	registerCommand("QUIT", &doNothing);
+	registerCommand("WHO", &doNothing);
+	registerCommand("WHOIS", &doNothing);
+	registerCommand("MODE", &handleModes);
 
-	registerCommand("JOIN", handleJoin);
-	registerCommand("KICK", handleKick);
-	registerCommand("INVITE", handleInvite);
+	registerCommand("JOIN", &handleJoin);
+	registerCommand("KICK", &handleKick);
+	registerCommand("INVITE", &handleInvite);
 
-	registerCommand("TOPIC", handleTopic);
+	registerCommand("TOPIC", &handleTopic);
 
-	registerCommand("QUIT", handleQuit);
+	registerCommand("QUIT", &handleQuit);
 
-	registerCommand("PART", handlePart);
-	registerCommand("PRIVMSG", handlePrivmsg);
+	registerCommand("PART", &handlePart);
+	registerCommand("PRIVMSG", &handlePrivmsg);
 }
 
 // Destructor ------------------------------------------------------------------
@@ -606,7 +606,7 @@ void	executeMode(Channel *channel, vector<string> &parsedCommand, char command)
 				return;
 			}
 			channel->setHasUserLimit(true);
-			channel->setUserLimit(std::stoi(parsedCommand[3]));
+			channel->setUserLimit(atoi(parsedCommand[3].c_str()));
 			parsedCommand.erase(parsedCommand.begin() + 3);
 			break;
 		case 't':

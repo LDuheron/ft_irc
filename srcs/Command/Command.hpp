@@ -13,11 +13,12 @@ using std::string;
 
 class Command
 {
-	using CommandFunction = std::function<void(Client *, vector<string> &)>;
+	// using CommandFunction = std::function<void(Client *, vector<string> &)>;
+	typedef void (*CommandFunction)(Client*, std::vector<std::string>&);
 	
 	private:
 		std::map<string, CommandFunction>	_commandMap;
-		vector<vector<string>>				_commandBuffer;
+		vector<vector<string> >				_commandBuffer;
 
 	public:
 		Command();
