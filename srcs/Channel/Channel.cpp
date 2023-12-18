@@ -128,7 +128,7 @@ bool	Channel::getInviteOnly(void) const { return (this->_inviteOnly); }
 
 void	Channel::inviteMember(Client *client)
 {
-	this->_members.push_back(client);
+	this->_invited.push_back(client);
 }
 
 void	Channel::uninviteMember(Client *client)

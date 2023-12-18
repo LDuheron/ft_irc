@@ -20,9 +20,9 @@ Server::Server(int port, std::string password) :
 	_clientMap(),
 	_clientMapStr(),
 	_channelMap(),
-	_command(new Command()),
+	_command(NULL),
 	_shutdown(false),
-	_bot(new Bot())
+	_bot(NULL)
 {}
 
 // Destructor ------------------------------------------------------------------
@@ -36,8 +36,10 @@ Server::~Server()
 	for (std::map<string, Channel *>::iterator it = this->_channelMap.begin(); it != this->_channelMap.end(); ++it)
 		delete it->second;
 	this->_channelMap.clear();
-	delete this->_command;
-	delete this->_bot;
+	if (this->_command)
+		delete this->_command;
+	if (this->_bot)
+		delete this->_bot;
 }
 
 // Accessors -------------------------------------------------------------------
@@ -68,7 +70,7 @@ Bot *						&Server::getBot(void) {return (this->_bot);};
 void		Server::start(void)
 {
 	init_server();
-	while (this->_shutdown == false)
+	while (this->_shutdown == false && shutdown_signal == false)
 		loop();
 }
 
@@ -84,10 +86,7 @@ static int	createSocket(void)
 {
 	int newSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (newSocket == -1)
-	{
 		std::perror("Error: Failed to create socket");
-		std::exit(-1);
-	}
 	return (newSocket);
 }
 
@@ -136,7 +135,14 @@ void		Server::init_server(void)
 	init_serverAddr();
 
 	// Create socket
-	setSocket(createSocket());
+	int newSocket = createSocket();
+	if (newSocket == -1)
+	{
+		this->_shutdown = true;
+		return ;
+	}
+	else
+		setSocket(createSocket());
 	if (LOG_OUTPUT)
 		std::cout << "===== server socket : " << this->_serverSocket << " =====" << std::endl;
 
@@ -151,6 +157,9 @@ void		Server::init_server(void)
 
 	// Listen on socket
 	listenSocket(this->_serverSocket);
+
+	_command = new Command();
+	_bot = new Bot();
 }
 
 // Functions - launch server -------------------------------------------------------------------
@@ -319,14 +328,9 @@ void			Server::sendMessageChannel(Channel *channel, string &message, Client *cli
 {
 	for (vector<Client *>::const_iterator it = channel->getMembers().begin(); it != channel->getMembers().end(); ++it)
 	{
-		string msg = ":" + (*it)->getNickname() + "!" + (*it)->getUsername() + "@" + (*it)->getHostname() + " " + message + "\r\n";
-		if ( *it != client)
-			sendMessage(*it, message);
-	}
-	if (LOG_OUTPUT)
-	{
-		std::cout << "\n----- Server response (channel) -----\n";
-		std::cout << message + "\r\n";
-		std::cout << "---------------------------\n";
+		// string msg = ":" + (*it)->getNickname() + "!" + (*it)->getUsername() + "@" + (*it)->getHostname() + " " + message;
+		string msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " " + message;
+		if (*it != client)
+			sendMessage(*it, msg);
 	}
 }

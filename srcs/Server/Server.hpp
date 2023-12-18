@@ -41,6 +41,8 @@ class Bot;
 
 using std::string;
 
+extern bool shutdown_signal;
+
 class Server
 {
 private:

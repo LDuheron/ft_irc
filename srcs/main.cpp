@@ -1,18 +1,12 @@
 #include "Server/Server.hpp"
 
-///// generer client via Irssi.org
-// commande pour se connecter a irssi :
-// /connect localhost <port> <password> <nickname optionnel>
-// RAWLOG OPEN debug.log -> voir messages envoyes
-// 6667 : standard ports for client-server connections.as port
-
-// CAP LS
+bool shutdown_signal = false;
 
 void	signalHandler(int signum)
 {
 	(void) signum;
-	std::cout << "\nExiting server.\n";
-	exit(SIGINT);
+	shutdown_signal = true;
+	std::cout << "\nExit signal received.\n";
 }
 
 void	checkArguments(char *port, char *pass)
@@ -41,6 +35,7 @@ void	checkArguments(char *port, char *pass)
 
 int main(int argc, char **argv)
 {
+	shutdown_signal = false;
 	if (argc != 3)
 	{
 		std::cerr << "Error: Usage is ./ircserv <port> <password>\n";
@@ -49,7 +44,6 @@ int main(int argc, char **argv)
 	checkArguments(argv[1], argv[2]);
 	Server	server(atoi(argv[1]), argv[2]);
 	signal(SIGINT, signalHandler);
-
 	server.start();
 	return (0);
 }
