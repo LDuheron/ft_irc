@@ -311,7 +311,6 @@ void			Server::sendMessageUser(Client *client, string &message)
 	}
 }
 
-// pas le temps d'être clean j'ai transcendance à taffer
 void			Server::sendMessageRaw(Client *client, string &message)
 {
 	if (send(client->getSocket(), message.c_str(), message.length(), 0) == -1)

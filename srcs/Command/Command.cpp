@@ -33,24 +33,19 @@ Command::Command()
 
 	registerCommand("TOPIC", handleTopic);
 
-	registerCommand("OPER", doNothing);
 	registerCommand("QUIT", handleQuit);
 
 	registerCommand("PART", handlePart);
 	registerCommand("PRIVMSG", handlePrivmsg);
 }
 
+// Destructor ------------------------------------------------------------------
+
 Command::~Command()
 {
 	this->_commandMap.clear();
 	this->_commandBuffer.clear();
 }
-
-// Destructor ------------------------------------------------------------------
-
-// Accessors -------------------------------------------------------------------
-
-// Overload --------------------------------------------------------------------
 
 // Functions -------------------------------------------------------------------
 
@@ -794,7 +789,6 @@ static void sendKickReply(Client *client, Channel *channel, string &message)
 			Server::sendMessageRaw(*it, kickReply);
 }
 
-// KICK <channel> <user> :<reason>
 void	Command::handleKick(Client *client, vector<string> &parsedCommand)
 {
 	string	trailingMessage = "";
@@ -914,7 +908,6 @@ static void sendTopicReply(Client *client, Channel *channel, string &message)
 			Server::sendMessageRaw(*it, topicReply);
 }
 
-// /topic <channel> <new Topic>
 void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 {
 	if (parsedCommand.size() < 2)
@@ -928,7 +921,7 @@ void	Command::handleTopic(Client *client, vector<string> &parsedCommand)
 	std::map<string, Channel *>::iterator itChannel = client->getServer()->getChannelMap().find(parsedCommand[1]);
 	if (itChannel != client->getServer()->getChannelMap().end())
 	{
-		if (parsedCommand.size() == 2) // afficher topic
+		if (parsedCommand.size() == 2)
 		{
 			if ((itChannel->second->getTopic().empty()))
 			{

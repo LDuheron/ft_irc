@@ -43,8 +43,6 @@ class Command
 		static void handleKick(Client *, vector<string> &);
 		static void	handleInvite(Client *, vector<string> &);
 
-		// Server Operator
-		static void	handleOper(Client *, vector<string> &);
 		static void	handleQuit(Client *, vector<string> &);
 
 		static void	doNothing(Client *, vector<string> &);

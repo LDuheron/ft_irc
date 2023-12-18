@@ -1,7 +1,7 @@
 #include "Bot.hpp"
 
 // Constructor
-Bot::Bot() : _name("bot"), _facts() //_server(serv),
+Bot::Bot() : _name("bot"), _facts()
 {
 	this->biblioFacts();
 }
