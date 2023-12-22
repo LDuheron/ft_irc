@@ -60,6 +60,7 @@ static vector<string>	splitString(Client *client, const string &command, const s
 
 	string commandCopy = command;
 
+
 	if (client->getIncomplete())
 		commandCopy = client->getIncompleteMessage() + command;
 	size_t	pos = 0;
@@ -820,12 +821,12 @@ void	Command::handleKick(Client *client, vector<string> &parsedCommand)
 		return;
 	}
 	std::string msg = "KICK " + itChannel->second->getName() + " " + parsedCommand[2] + " ";
-		if (parsedCommand.size() > 2 && parsedCommand[2][0] == ':')
+		if (parsedCommand.size() > 3 && parsedCommand[3][0] == ':')
 	{
-		trailingMessage = parsedCommand[2].substr(1, parsedCommand[2].size());
-		if (parsedCommand.size() > 3)
+		trailingMessage = parsedCommand[3].substr(1, parsedCommand[3].size());
+		if (parsedCommand.size() > 4)
 		{
-			for	(size_t i = 3; i < parsedCommand.size(); ++i)
+			for	(size_t i = 4; i < parsedCommand.size(); ++i)
 				trailingMessage += " " + parsedCommand[i];
 		}
 	}
