@@ -62,7 +62,6 @@ static vector<string>	splitString(Client *client, const string &command, const s
 
 	if (client->getIncomplete())
 		commandCopy = client->getIncompleteMessage() + command;
-
 	size_t	pos = 0;
 	size_t	end = commandCopy.find(delimiter);
 
@@ -76,6 +75,12 @@ static vector<string>	splitString(Client *client, const string &command, const s
 	{
 		client->setIncomplete(true);
 		client->setIncompleteMessage(commandCopy.substr(pos, end - pos));
+		if (LOG_OUTPUT)
+		{
+			std::cout << "\n~~~~~ Incomplete data saved to buffer : ~~~~~\n";
+			std::cout << client->getIncompleteMessage();
+			std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n";
+		}
 	}
 	else
 		client->setIncomplete(false);

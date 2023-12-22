@@ -25,9 +25,9 @@
 # include "../Channel/Channel.hpp"
 # include "../Command/Command.hpp"
 
-# define LOG_OUTPUT 0
+# define LOG_OUTPUT 1
 
-# define SERVER_VERSION "1.9"
+# define SERVER_VERSION "1.2"
 
 # define HOST_NAME_MAX 255
 # define MAX_CLIENTS 3

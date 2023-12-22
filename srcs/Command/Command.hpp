@@ -13,7 +13,6 @@ using std::string;
 
 class Command
 {
-	// using CommandFunction = std::function<void(Client *, vector<string> &)>;
 	typedef void (*CommandFunction)(Client*, std::vector<std::string>&);
 	
 	private:
