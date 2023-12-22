@@ -885,12 +885,8 @@ void	Command::handleQuit(Client *client, vector<string> &parsedCommand)
 			sendPartReply(client, it->second, message);
 			if (it->second->isOperator(client))
 				it->second->removeOperator(client);
-			it->second->removeMember(client);
 			if (it->second->getMembers().empty())
-			{
 				channelMap.erase(it->first);
-				delete it->second;
-			}
 		}
 	}
 }
